@@ -1,0 +1,11 @@
+
+--https://martincarstenbach.wordpress.com/2015/07/08/json-support-in-exadata-12-1-2-1-0-and-later/
+--https://github.com/tanelpoder/tpt-oracle/blob/master/sqlidx.sql
+select sql_id, child_number,
+  2  case when io_cell_offload_eligible_bytes = 0 then 'NO' else 'YES' end offloaded,
+  3  io_cell_offload_eligible_bytes/power(1024,2) offload_eligible_mb,
+  4  io_interconnect_bytes/power(1024,2) interconnect_mb,
+  5  io_cell_offload_returned_bytes/power(1024,2) returned_mb,
+  6  io_cell_offload_returned_bytes/io_cell_offload_eligible_bytes*100 offload_pct
+  7   from v$sql where sql_id = '6j73xcww7hmcw';  
+  
