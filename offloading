@@ -10,5 +10,12 @@ select sql_id, child_number,
   7   from v$sql where sql_id = '6j73xcww7hmcw';  
   
 
-select s.name, m.value/1024/1024 mb from v$mystat m, v$sysstat s where m.statistic#=s.statistic# and (s.name like '%physical IO%' or s.name like '%optimized%' or s.name like 'physical%total bytes') order by 2 desc; 
-select round(IO_CELL_OFFLOAD_ELIGIBLE_BYTES/1024/1024/1024) eligible, round(IO_CELL_OFFLOAD_RETURNED_BYTES/1024/1024/1024) returned, round(IO_CELL_OFFLOAD_RETURNED_BYTES/(IO_CELL_OFFLOAD_ELIGIBLE_BYTES+1),3)*100 "offload_returned_ratio(%)", a.* from gv$sql a where IO_CELL_OFFLOAD_ELIGIBLE_BYTES > IO_CELL_OFFLOAD_RETURNED_BYTES order by 1 desc;
+select s.name, m.value/1024/1024 mb 
+from v$mystat m, v$sysstat s 
+where m.statistic#=s.statistic# and (s.name like '%physical IO%' or s.name like '%optimized%' or s.name like 'physical%total bytes') 
+order by 2 desc; 
+
+select round(IO_CELL_OFFLOAD_ELIGIBLE_BYTES/1024/1024/1024) eligible, round(IO_CELL_OFFLOAD_RETURNED_BYTES/1024/1024/1024) returned, 
+round(IO_CELL_OFFLOAD_RETURNED_BYTES/(IO_CELL_OFFLOAD_ELIGIBLE_BYTES+1),3)*100 "offload_returned_ratio(%)", a.* 
+from gv$sql a 
+where IO_CELL_OFFLOAD_ELIGIBLE_BYTES > IO_CELL_OFFLOAD_RETURNED_BYTES order by 1 desc;
