@@ -1,6 +1,9 @@
 
 --https://martincarstenbach.wordpress.com/2015/07/08/json-support-in-exadata-12-1-2-1-0-and-later/
 --https://github.com/tanelpoder/tpt-oracle/blob/master/sqlidx.sql
+--https://dbakevlar.com/2020/02/exadata-workloads-to-azure-part-ii/
+Smart Scan Efficiency=100-((100/<cell physical IO bytes eligible for predicate offload>) * <cell physical IO interconnect bytes returned by smart scan>)
+
 select sql_id, child_number,
   2  case when io_cell_offload_eligible_bytes = 0 then 'NO' else 'YES' end offloaded,
   3  io_cell_offload_eligible_bytes/power(1024,2) offload_eligible_mb,
