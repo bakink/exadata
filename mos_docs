@@ -1,0 +1,65 @@
+--https://adityanathoracledba.com/2020/08/21/all-mos-oracle-metalink-documents-you-should-have-it-handy-when-working-on-exadata/
+
+Master notes:
+
+Exadata Database Machine and Exadata Storage Server Supported Versions (Doc ID 888828.1)
+Information Center: Oracle Exadata Database Machine (Doc ID 1306791.2)
+Oracle Exadata Best Practices (Doc ID 757552.1)
+Data collection on Exadata:
+
+SRDC – Service Request Data Collection Catalog: All Products – Database – Exadata – EBS – Fusion – GBUs – JDE – MICROS – Middleware – Peoplesoft – Siebel – Sun Systems (Doc ID 1987484.2)
+Oracle Exadata Database Machine EXAchk (Doc ID 1070954.1)
+ExaWatcher Utility On Exadata and SuperCluster Compute and Storage Nodes (Doc ID 1617454.1)
+Oracle Exadata Diagnostic Information required for Disk Failures and some other Hardware issues (Doc ID 761868.1)
+How To Collect Sosreport on Oracle Linux (Doc ID 1500235.1)
+How to Collect sosreport under Rescue Mode (Doc ID 1928852.1)
+How to Upload Files to Oracle Support (Doc ID 1547088.2)
+How to run an ILOM Snapshot on a Sun/Oracle X86 System (Doc ID 1448069.1)
+Rebooting Exadata:
+
+How to shutdown the Exadata database nodes and storage cells in a rolling fashion so certain hardware tasks can be performed. (Doc ID 1539451.1)
+Steps to shut down or reboot an Exadata storage cell without affecting ASM (Doc ID 1188080.1)
+Steps To Shutdown/Startup The Exadata & RDBMS Services and Cell/Compute Nodes On An Exadata Configuration (Doc ID 1093890.1)
+How to Shutdown and Startup Exadata Compute Nodes and Storage Cells (including SuperCluster) When Performing Hardware Maintenance (X5 and later) (Doc ID 1982342.1)
+GRID/ASM stuff on Exadata:
+
+ASM tools used by Support : KFOD, KFED, AMDU (Doc ID 1485597.1)
+How To Restore/Repair/Fix An Overwritten (KFBTYP_INVALID) ASM Disk Header (First 4K) 10.2.0.5, 11.1.0.7, 11.2 And Onwards (Doc ID 1088867.1)
+How To Gather & Backup ASM/ACFS Metadata In A Formatted Manner version 10.1, 10.2, 11.1, 11.2, 12.1, 12.2, 18.x and 19.x (Doc ID 470211.1)
+Exadata Database Machine : How to identify cell failgroups and Partner disks for a grid disk (Doc ID 1431697.1)
+Understanding ASM Capacity and Reservation of Free Space in Exadata (Doc ID 1551288.1)
+How to resize ASM disks in Exadata (Doc ID 1684112.1)
+Resizing Grid Disks in Exadata: Example of Recreating RECO Grid Disks in a Rolling Manner (Doc ID 1465230.1)
+How to Mount the Diskgroup After Failure of Mount Force Command in Exadata (Doc ID 1398580.1)
+How To Relink The Oracle Grid Infrastructure Standalone (Restart) Installation Or Oracle Grid Infrastructure RAC/Cluster Installation (11.2 to 18.c). (Doc ID 1536057.1)
+Hugepages:
+
+Oracle Linux: Shell Script to Calculate Values Recommended Linux HugePages / HugeTLB Configuration (Doc ID 401749.1)
+HugePages on Linux: What It Is… and What It Is Not… (Doc ID 361323.1)
+HugePages on Oracle Linux 64-bit (Doc ID 361468.1)
+OS stuff on Exadata:
+
+Where / How to find OS crashcore file in Exadata Systems [Linux] (Doc ID 1389225.1)
+How to Configure “kdump” on Oracle Linux 5 (Doc ID 452067.1)
+How to Configure “kdump” on Oracle Linux 6 (Doc ID 1507025.1)
+How to Configure “kdump” on Oracle Linux 7 (Doc ID 2049919.1)
+How to trigger crash from ILOM (Doc ID 1514432.1)
+How to configure ssh equivalence from DB nodes to all CELL& IB nodes for root user (Doc ID 2323068.1)
+Miscellaneous Notes:
+
+Bare Metal Restore Procedure for Compute Nodes on an Exadata Environment (Doc ID 1084360.1)
+How to change OS user password for Cell Node, Database Node , ILOM, KVM , Infiniband Switch , GigaBit Ethernet Switch and PDU on Exadata Database Machine (Doc ID 1291766.1)
+dbnodeupdate.sh and dbserver.patch.zip: Updating Exadata Database Server Software using the DBNodeUpdate Utility and patchmgr (Doc ID 1553103.1)
+How to recover from a failed Linux Exadata DB Server dbnodeupdate or rollback (Doc ID 1952372.1)
+Exadata Patching Overview and Patch Testing Guidelines (Doc ID 1262380.1)
+Exadata Smart Scan FAQ (Doc ID 1927934.1)
+External software’s on Exadata:
+
+Installing Third Party Monitoring Tools in Exadata Environment (Doc ID 1157343.1)
+Installing Third Party Software On Exadata Components (Doc ID 1593827.1)
+Can We Install An Anti Virus Software On Exadata Compute Nodes? (Doc ID 1935746.1)
+OEM for Exadata:
+
+Exadata System Software and Hardware Versions Supported by Oracle Enterprise Manager Plug-ins (Doc ID 1626579.1)
+Troubleshooting Exadata Database Machine Discovery in 12c Cloud Control (Doc ID 1448388.1)
+How to Regenerate a databasemachine.xml File for EM 12c or 13c Discovery of Exadata or SuperCluster (Doc ID 1684431.1)
