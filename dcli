@@ -1,5 +1,8 @@
 --https://blogs.oracle.com/letthesunshinein/dclisqlplus
 --https://blogs.oracle.com/r/using-dcli-to-install-oracle-r-distribution-and-oracle-r-enterprise
+--https://www.oracle.com/technical-resources/articles/enterprise-manager/exadata-commands-part3.html
+--https://www.oracle.com/technical-resources/articles/enterprise-manager/exadata-commands-part2.html
+--https://www.oracle.com/technical-resources/articles/enterprise-manager/exadata-commands.html
 
 /usr/local/bin/dcli -g /home/oracle/dbs_group -l oracle  'df -h /u01'
 /usr/local/bin/dcli -g /home/oracle/dbs_group -l oracle /bin/df -hPl #local file sysem
