@@ -1,0 +1,2851 @@
+Exadata Commands
+
+useradd
+
+
+dcli -l oracle -g dbs_group_pr01pimi --serial "       echo
+'@/export/ora_stage/vishal/sqlscripts/flush_sql       1j6sgrbmy4592'|sqlplus -s / as
+sysdba" |grep 'successfully completed'
+dcli -l oracle -g dbs_group_bt01pimi --serial "       echo
+'@/export/ora_stage/vishal/sqlscripts/flush_sql       1j6sgrbmy4592'|sqlplus -s / as
+sysdba" |grep 'successfully completed'
+
+dcli -l oracle -c dm02db04,dm02db05,dm02db06 --serial " echo
+'@/export/ora_stage/vishal/sqlscripts/flush_sql 5f4d1xd2uftj1'|sqlplus -s / as
+sysdba" |grep 'successfully completed'
+dcli -l oracle -c dm02db04,dm02db05,dm02db06 --serial " echo 'alter system flush
+shared_pool;'|sqlplus -s   as sysdba"|grep 'successfully completed'
+
+
+#######################################
+# Exadata Cell Serice Startup Time
+#######################################
+# CELLSRVC Cell Server process
+dcli -l root -g ~/cell_group "ps -ef|grep 'cellsrv 100' |grep -v grep"
+
+# MS   (Monitoring Server) process
+dcli   -l root -g ~/cell_group "ps   -ef|grep   'cellrsomt' |grep -v grep"
+dcli   -l root -g ~/cell_group "ps   -ef|grep   'cellrsmmt' |grep -v grep"
+dcli   -l root -g ~/cell_group "ps   -ef|grep   'cellrsbkm' |grep -v grep"
+dcli   -l root -g ~/cell_group "ps   -ef|grep   'oc4j.jar' |grep -v grep"
+
+# RS (Restart Server) process
+dcli -l root -g ~/cell_group "ps -ef|grep 'cellrssrm' |grep -v grep"
+# OSWatcher
+dcli -l root -g ~/cell_group "ps -ef|grep 'OSWatcher.sh' |grep -v grep"
+
+
+#############################
+# Exadata Hardware Checks
+#############################
+
+#-- Get LED Light Status
+dcli -l root -g all_group '/usr/bin/ipmitool        sunoem led get all |egrep -v "OFF|na|
+OK.*ON" '
+
+#-- Cell level checks
+dcli -l root -g cell_group " cellcli -e LIST CELL ATTRIBUTES
+name,cellNumber,status,fanStatus,powerStatus,temperatureStatus,cellsrvStatus,msStat
+us,rsStatus,releaseVersion,releaseTrackingBug"
+#-- 11.2.3.2.0 onwards
+dcli -l root -g cell_group " cellcli -e LIST CELL ATTRIBUTES
+name,cellNumber,status,flashCacheMode,fanStatus,powerStatus,temperatureStatus,cells
+rvStatus,msStatus,rsStatus,releaseVersion,releaseTrackingBug"
+
+#-- Physical HardDisks
+dcli -l root -g cell_group " cellcli -e \"LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,physicalRPM,physicalInsertTime,errorcount,errHard
+ReadCount,errHardWriteCount,errMediaCount,errOtherCount,errSeekCount,lastFailureRea
+son where disktype=harddisk AND status != 'normal' \" "
+#-- Physical HardDisks LUNs
+dcli -l root -g cell_group " cellcli -e \"LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=harddisk AND status != 'normal' \" "
+
+#-- FlashDisks
+dcli -l root -g cell_group " cellcli -e \"LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,lastFailureReason
+where disktype=flashdisk AND status != 'normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=flashdisk AND status != 'normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST lun ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=flashdisk and physicalDrives='' \" "
+
+#-- Cell Disk Checks
+dcli -l root -g cell_group " cellcli -e \"LIST CELLDISK ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where disktype=harddisk and status !='normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST CELLDISK ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where disktype=flashdisk and status !='normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST CELLDISK ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where status !='normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST CELLDISK ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where disktype=harddisk and freespace !=0 \" "
+dcli -l root -g cell_group " cellcli -e \"LIST CELLDISK ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where disktype=flashdisk and freespace !=0 \" "
+
+
+#-- Grid Disk Checks
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,cachingPolicy,size,offset,errorcount,creationTime,asmmodestatu
+s,asmdeactivationoutcome,comment where status != 'active' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,cachingPolicy,size,offset,errorcount,creationTime,asmmodestatu
+s,asmdeactivationoutcome,comment where asmmodestatus != 'ONLINE' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,cachingPolicy,size,offset,errorcount,creationTime,asmmodestatu
+s,asmdeactivationoutcome,comment where asmdeactivationoutcome != 'Yes' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,cachingPolicy,size,offset,errorcount,creationTime,asmmodestatu
+s,asmdeactivationoutcome,comment where cachingPolicy != 'default' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,cachingPolicy,size,offset,errorcount,creationTime,asmmodestatu
+s,asmdeactivationoutcome,comment where name like '.*RECO.*' \" and cachingPolicy !=
+'default' \" "
+
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,size,offset,errorcount,creationTime,asmmodestatus,asmdeactivat
+ionoutcome,comment where asmdeactivationoutcome != 'Yes' \" "
+
+
+#-- FlashCache
+dcli -l root -g cell_group " cellcli -e 'LIST flashcache attributes
+name,status,size,creationTime,degradedCelldisks,effectiveCacheSize   ' "
+
+#-- FlashLog
+dcli -l root -g cell_group " cellcli -e 'LIST flashlog attributes
+name,status,size,creationTime,degradedCelldisks,effectiveSize,efficiency ' "
+
+#-- Battery Checks
+#-- Check current battery temperature (Should be < 60 C)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -a0 | grep
+Temperature:'
+
+#-- Check current Battery Charge Capacity (Should be > 800 mAh)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd
+-GetBbuCapacityInfo -a0 | grep "Full Charge" '
+
+#-- Check current Battery erors (Should be < 10%)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | grep "Max Error"'
+
+
+#-- FlashCache
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,cachingPolicy where name like '.*RECO.*' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,cachingPolicy where cachingPolicy != 'default' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST METRICCURRENT WHERE name =
+'GD_BY_FC_DIRTY' and metricObjectName like '.*RECO.*' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST METRICCURRENT WHERE name =
+'GD_IO_BY_R_LG' and metricObjectName like '.*RECO.*' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST METRICCURRENT WHERE name =
+'GD_IO_BY_R_SM' and metricObjectName like '.*RECO.*' \" "
+
+
+#############################
+# Exadata Version Checks
+#############################
+
+#-- Exadata Software
+dcli -l root -g all_group imageinfo --image-version
+dcli -l root -g all_group imageinfo --image-status
+dcli -l root -g all_group imageinfo --kernel-version
+dcli -l root -g cell_group imageinfo --cell-version
+dcli -l root -g cell_group imageinfo --cell-rpm-version
+
+#-- Kernel Version
+dcli -l root -g all_group 'uname -r'
+dcli -l root -g all_group 'rpm -q kernel'
+dcli -l root -g all_group 'rpm -q kernel-uek'
+
+#-- Check Firmwares
+dcli -l root -g all_group '/opt/oracle.SupportTools/CheckHWnFWProfile -d ' >
+/tmp/CheckHWnFWProfile.txt
+
+for i in SystemModel BIOSVersion ILOMVersion LightsOutFirmwareVersion \
+DiskControllerModel DiskControllerFirmwareRevision
+DiskControllerBatteryBackupUnitVersion DiskControllerPCIeSlotWidth \
+MinimumSASExpanderFirmware SASBackplaneFirmwareVersion \
+BackplaneFirmwareVersion InfinibandHCAChipRevision InfinibandHCAFirmwareVersion
+InfinibandHCAHardwareRev InfinibandHCAPCIeSlotWidth \
+MinimumCPLDFirmware \
+FansAndFanCount PowersuppliesAndCount \
+PhysicalMemoryGB ProcessorInformation
+do
+   echo "-------------- $i ---------------------"
+   grep -A1 $i /tmp/CheckHWnFWProfile.txt |egrep -v "^--|$i"
+done |less
+
+# For 11.2.3.3.0 and above
+for i in Server_Model BIOSVendor BIOSVersion ProcessorModel SocketCount ILOMVersion
+PhysicalMemoryGB \
+DiskControllerModel DiskControllerPCIeSlotWidth DiskControllerSilicon
+DiskControllerFirmwareRevision \
+DiskControllerPCIeSlotNumber DiskControllerBatteryBackupUnitVersion FanCount
+Powersupply_Info \
+InfinibandHCA InfinibandHCAImageType InfinibandHCAPCIeSlotSpeed
+InfinibandHCAPCIeSlotWidth InfinibandHCAChipRevision \
+InfinibandHCADeviceID InfinibandHCAFirmwareVersion InfinibandHCAPCIeSlotNumber
+InfinibandHCAHardwareRev InfinibandHCAPSID \
+Ether10GCount Ether10GModel
+do
+   echo "-------------- $i ---------------------"
+   grep -h $i /tmp/CheckHWnFWProfile.txt
+done |less
+
+
+
+#-- Check FDOM version
+grep MARVELL /tmp/CheckHWnFWProfile.txt
+grep /dev/ /tmp/CheckHWnFWProfile.txt
+      #-- Check Disks firmware
+      egrep 'SAS|SATA' /tmp/CheckHWnFWProfile.txt
+
+#############################
+# Exadata Patching Checks
+#############################
+
+#-- Check startup check failures
+dcli -l root -g all_group "cat /var/log/cellos/validations.log   |egrep 'FAILED|
+ERROR'"
+
+
+
+# Alert Log
+#####################
+less $ORACLE_BASE/diag/rdbms/`echo $ORACLE_SID|cut -b 1-8`/
+$ORACLE_SID/trace/alert_$ORACLE_SID.log
+dcli -l oracle -g dbs_group 'egrep -A10 "Aug 01.*2012"
+$ORACLE_BASE/diag/rdbms/`echo $ORACLE_SID|cut -b 1-8`/
+$ORACLE_SID/trace/alert_$ORACLE_SID.log |egrep "2012|ORA-00600|trc" | grep -B1 ORA-
+|egrep -v "^--" '
+
+# Search listener Log on Exadata
+#####################################
+less $ORACLE_BASE/diag/tnslsnr/`hostname -s`/listener/trace/listener.log
+dcli -l oracle -g dbs_group "grep 31-JUL-2012
+/u01/app/oracle/diag/tnslsnr/\`hostname -s\`/listener/trace/listener.log |egrep
+'ORA-00060'"
+########################
+# Compute node details
+########################
+
+
+DBMCLI> describe dbserver
+        name                 modifiable
+        bbuStatus
+        comment              modifiable
+        coreCount
+        cpuCount
+        diagHistoryDays      modifiable
+        emailFormat          modifiable
+        emailSubscriber      modifiable
+        fanCount
+        fanStatus
+        iaasIdleInUse        modifiable
+        iaasMode             modifiable
+        iaasReason           modifiable
+        id
+        interconnectCount
+        interconnect1        modifiable
+        interconnect2        modifiable
+        interconnect3        modifiable
+        interconnect4        modifiable
+        interconnect5        modifiable
+        interconnect6        modifiable
+        interconnect7        modifiable
+        interconnect8        modifiable
+        ipaddress1
+        ipaddress2
+        ipaddress3
+        ipaddress4
+        ipaddress5
+        ipaddress6
+        ipaddress7
+        ipaddress8
+        kernelVersion
+        locatorLEDStatus
+        location             modifiable
+        makeModel
+        metricCollection     modifiable
+        metricHistoryDays    modifiable
+        msVersion
+        notificationMethod   modifiable
+        notificationPolicy   modifiable
+        pendingCoreCount     modifiable
+        powerCount
+        powerStatus
+        realmName            modifiable
+        releaseImageStatus
+        releaseVersion
+        releaseTrackingBug
+        smtpFrom             modifiable
+        smtpFromAddr         modifiable
+        smtpPort             modifiable
+        smtpPwd              modifiable
+        smtpServer           modifiable
+        smtpToAddr           modifiable
+        smtpUser                modifiable
+        smtpUseSSL              modifiable
+        snmpEngineID            modifiable
+        snmpSubscriber          modifiable
+        snmpUser                modifiable
+        status
+        syslogConf              modifiable
+        temperatureReading
+        temperatureStatus
+        traceLevel              modifiable
+        upTime
+        msStatus
+        rsStatus
+
+
+dcli -l root -g dbs_group " dbmcli -e 'list dbserver attributes
+name,coreCount,cpuCount,pendingCoreCount' "
+
+
+
+########################
+# Cell Details
+########################
+dcli -l root -g cell_group " cellcli -e ' LIST CELL ATTRIBUTES
+name,cellNumber,status,flashCacheMode,flashCacheCompress,fanStatus,powerStatus,temp
+eratureStatus,cellsrvStatus,msStatus,rsStatus,releaseVersion,releaseTrackingBug ' "
+
+# FlashCache Compression
+##########################
+
+    #If disabled, then value is FALSE or NULL
+   dcli -l root -g cell_group "cellcli -e LIST CELL attributes
+name,flashCacheCompress "
+   dcli -l root -g cell_group 'grep flashCacheCompress
+$OSSCONF/cell_disk_config.xml'
+
+
+# Physical Disk Details
+########################
+cellcli -e ' DESCRIBE PHYSICALDISK '
+
+dcli -l root -g cell_group " cellcli -e \"LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,lastFailureReason
+where disktype=harddisk AND status != 'normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,lastFailureReason
+where disktype=flashdisk AND status != 'normal' \" "
+
+dcli -l root -g cell_group " cellcli -e ' LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,physicalSize,errCmd
+TimeoutCount,errHardReadCount,errHardWriteCount,errMediaCount,errOtherCount,errSeek
+Count,errorCount,notPresentSince,lastFailureReason where disktype=harddisk ' "
+dcli -l root -g cell_group " cellcli -e ' LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,lastFailureReason
+where disktype=flashdisk ' "
+
+# Should display count=0
+dcli -l root -g dbs_group /opt/MegaRAID/MegaCli/MegaCli64 -PdList -a0 | grep
+"Predictive Failure Count"
+# LUN Details
+#####################
+cellcli -e ' DESCRIBE LUN '
+
+dcli -l root -g cell_group " cellcli -e \"LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=harddisk AND status != 'normal' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=flashdisk AND status != 'normal' \" "
+
+dcli -l root -g cell_group " cellcli -e LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=harddisk "
+dcli -l root -g cell_group " cellcli -e LIST LUN ATTRIBUTES
+name,status,diskType,deviceName,raidLevel,isSystemLun,lunSize,physicalDrives,lunWri
+teCacheMode,errorCount where disktype=flashdisk "
+
+
+
+# CELL DISK Details
+####################
+cellcli -e ' DESCRIBE CELLDISK '
+
+dcli -l root -g cell_group " cellcli -e \"LIST celldisk ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where status !='normal' \" "
+
+dcli -l root -g cell_group " cellcli -e ' LIST celldisk ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel ' "
+
+
+# GridDisk Details
+##################
+cellcli -e ' DESCRIBE griddisk '
+
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,size,offset,errorcount,creationTime,asmmodestatus,asmdeactivat
+ionoutcome,comment where status != 'active' \" "
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,status,diskType,size,offset,errorcount,creationTime,asmmodestatus,asmdeactivat
+ionoutcome,comment where asmmodestatus != 'ONLINE' \" "
+
+dcli -l root -g cell_group " cellcli -e ' LIST GRIDDISK ATTRIBUTES
+name,status,diskType,size,offset,errorcount,creationTime,asmmodestatus,asmdeactivat
+ionoutcome,comment ' "
+
+dcli -l root -g cell_group " cellcli -e \"LIST GRIDDISK ATTRIBUTES
+name,cachingPolicy where cachingPolicy = 'none' \" "
+
+
+
+# FlashDisk Details
+###################
+
+#If disabled, then value is FALSE or NULL
+dcli -l root -g cell_group "cellcli -e LIST CELL attributes name,flashCacheCompress
+"
+dcli -l root -g cell_group 'grep flashCacheCompress $OSSCONF/cell_disk_config.xml'
+
+dcli -l root -g cell_group " cellcli -e ' LIST PHYSICALDISK ATTRIBUTES
+name,status,diskType,physicalSize,errorcount,physicalInsertTime,lastFailureReason
+where disktype=flashdisk ' "
+dcli -l root -g cell_group " cellcli -e ' LIST lun ATTRIBUTES
+name,status,diskType,raidLevel,isSystemLun,lunSize,physicalDrives,lunWriteCacheMode
+,errorCount where disktype=flashdisk ' "
+dcli -l root -g cell_group " cellcli -e ' LIST celldisk ATTRIBUTES
+name,status,diskType,lun,size,freespace,errorcount,creationTime,interleaving,raidle
+vel where disktype=flashdisk ' "
+dcli -l root -g cell_group " cellcli -e ' LIST flashcache attributes
+name,status,size,creationTime,degradedCelldisks,effectiveCacheSize ' "
+dcli -l root -g cell_group " cellcli -e ' LIST flashlog attributes
+name,status,size,creationTime,degradedCelldisks,effectiveSize,efficiency ' "
+
+# FlashCache Contents
+#######################
+dcli -l root -g cell_group " cellcli -e ' LIST FLASHCACHECONTENT ATTRIBUTES
+dbUniqueName,dbID,objectNumber,tableSpaceNumber,cachedSize,cachedKeepSize,hitCount,
+missCount,hoursToExpiration ' "
+
+# Reset FlashCache
+alter cell events = "immediate cellsrv.cellsrv_flashcache(Reset,0,0,0)"
+
+
+# For Exadata Server Software 11.2.3.2.0 onwards
+################################################
+#-- Flush FlashCache
+CELLCLI> alter flashcache all fush
+
+#-- Convert FlashCache Mode
+CELLCLI> alter flashcache all fush
+CELLCLI> drop flashcache
+CELLCLI> list flashcache
+CELLCLI> alter cell flashCacheMode=WriteThrough
+or
+CELLCLI> alter cell flashCacheMode=WriteBack
+CELLCLI> create flashcache all
+CELLCLI> list flashcache
+
+
+
+
+# How to find which cell node is a SQL or session is running on and what it is
+doing?
+###################################################################################
+####
+cellcli -e ' LIST ACTIVEREQUEST where dbName = mydb and instanceNumber = 1 '
+cellcli -e ' LIST ACTIVEREQUEST where sessionID=1271 and sessionSerNumber=31026
+detail '
+
+
+
+
+##########################
+# Serial Numbers
+##########################
+#-- Exadata Rack serial number
+/usr/bin/ipmitool sunoem cli "show /SP system_identifier"
+#-- Exadata Compute/Cell node - serial number
+/usr/bin/ipmitool sunoem cli "show /SYS product_serial_number"
+#-- Rack level and Individual Serial Numbers
+/opt/oracle.SupportTools/CheckHwnFWProfile -S
+
+
+#################################################################
+# IPMI Tool (ILOM) Commands
+#################################################################
+
+###############################
+#-- ILOM (SP - Service Processor) Commands
+###############################
+/usr/bin/ipmitool sunoem cli "reset -script /SP"
+
+#-- Restart ILOM
+cellcli -e ' alter cell restart bmc '
+or
+/usr/bin/ipmitool sunoem cli "reset -script /SP"
+
+#-- Force restarting ILOM
+/usr/bin/ipmitool bmc reset cold
+
+#-- If still unable to restart ILOM, try SSH to ILOM and issue follwoing.
+reset -script /SP
+
+###############################
+# ILOM Server Commands
+###############################
+/usr/bin/ipmitool sunoem cli "reset -script /SYS"
+/usr/bin/ipmitool sunoem cli "stop -script /SYS"
+/usr/bin/ipmitool sunoem cli "start -script /SYS"
+#-- Server Power (chassis power Commands: status, on, off, cycle, reset, diag,
+soft)
+/usr/bin/ipmitool power status
+/usr/bin/ipmitool power on
+/usr/bin/ipmitool power soft
+/usr/bin/ipmitool power off
+/usr/bin/ipmitool power cycle
+/usr/bin/ipmitool power reset
+/usr/bin/ipmitool power diag
+
+/usr/bin/ipmitool chassis power off
+
+
+###############################
+# ILOM Console
+###############################
+#-- Start Console
+start -script /SP/Console
+
+#-- Stop Console
+Prese ESC and (
+
+#-- Show ILOM Version & Firmware
+/usr/bin/ipmitool sunoem cli "version"
+#-- ILOM Cli
+/usr/bin/ipmitool   sunoem cli
+
+#-- Show System properties
+show -d properties -level 1 /SYS
+show -d properties -level 1 /SP
+show -d properties -level 2 /SP
+show -d properties -o table -level all /SYS
+
+#-- Show Targets
+show -d targets /SP
+show -d targets /SYS
+
+
+#-- Show system faults
+
+#
+/usr/bin/ipmitool   sunoem cli " show -level all /SP/faultmgmt"
+
+# Show as table
+/usr/bin/ipmitool   sunoem cli "show -o table -level all /SP/faultmgmt"
+
+/usr/bin/ipmitool   sunoem cli "show -o table -level all /SP/faultmgmt"
+
+
+/usr/bin/ipmitool   sunoem cli "start -script /SP/faultmgmt/shell
+fmadm faulty -a
+"
+
+
+/usr/bin/ipmitool sunoem cli "show         -d properties   -o table -level all
+/SYS/FAN_FAULT"
+/usr/bin/ipmitool sunoem cli "show         -d properties   -o table -level all
+/SYS/PS_FAULT"
+/usr/bin/ipmitool sunoem cli "show         -d properties   -o table -level all
+/SYS/TEMP_FAULT"
+/usr/bin/ipmitool sunoem cli "show         -d properties   -o table -level all /SYS Target
+Type==(Indicator) Target==(*FAULT)"
+
+#-- Show event log
+/usr/bin/ipmitool sel list
+/usr/bin/ipmitool sunoem cli "show         /SP/logs/event/list   Class<>(Audit)"
+/usr/bin/ipmitool sunoem cli "show         /SP/logs/event/list   Class==(ASR)"
+/usr/bin/ipmitool sunoem cli "show         /SP/logs/event/list   Severity==(critical)"
+/usr/bin/ipmitool sunoem cli "show         /SP/logs/event/list   Severity==(critical) -level
+all -output table"
+/usr/bin/ipmitool sunoem cli "show         /SP/logs/event/list Class==(value)
+Type==(value) Severity==(value)"
+/usr/bin/ipmitool sunoem cli "show         /SP/session"
+
+/usr/bin/ipmitool   sunoem   cli   "show   /SP/logs/event/list   Class==Sensor "
+/usr/bin/ipmitool   sunoem   cli   "show   /SP/logs/event/list   Class==Fault "
+/usr/bin/ipmitool   sunoem   cli   "show   /SP/logs/event/list   Class==Power "
+/usr/bin/ipmitool   sunoem   cli   "show   /SP/logs/event/list   Class==IPMI "
+
+
+#-- Show Console history
+/usr/bin/ipmitool   sunoem cli "show /SP/console/history"
+
+#-- Clear event log (when it gets full)
+/usr/bin/ipmitool sunoem cli
+-->   set /SP/logs/event clear=true
+
+#Get LED Light Status
+dcli -l root -g all_group '/usr/bin/ipmitool      sunoem led get all |egrep -v "OFF|na|
+OK.*ON" '
+dcli -l root -g all_group '/usr/bin/ipmitool      sunoem led get SERVICE'
+dcli -l root -g all_group '/usr/bin/ipmitool      sunoem led get /SP/SERVICE'
+
+
+
+##########################
+# Boot Order
+##########################
+
+#-- Get current boot order
+/usr/bin/biosconfig -get_boot_order
+
+#-- Change next boot device
+#-- (Boot Order file can be obtained by -get_boot_order, and then change FIRST tag
+under BOOt_ORDER_OVERRISDE
+biosconfig -set_boot_override <boot_order_filename>
+
+
+##################################
+# Disk Controller Commmands
+##################################
+#-- Help
+/opt/MegaRAID/MegaCli/MegaCli64 -help
+
+#-- Get all the information
+/opt/MegaRAID/MegaCli/MegaCli64    -AdpAllInfo -a0
+
+
+#-- Get disk controller log and   event
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetEvents   -info -aALL
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetEvents   -info -aALL
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetEvents   -info -aALL
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetEvents   -info -aALL
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetEvents   -info -aALL
+/opt/MegaRAID/MegaCli/MegaCli64   -AdpEventLog   -GetLatest   100 -aALL
+
+
+#-- Check Disk Controller Cache Policy (Should be Disabled)
+dcli -l root -g all_group "/opt/MegaRAID/MegaCli/MegaCli64 -LDInfo -Lall -a0 |grep
+'Disk Cache Policy'"
+
+#-- Check cache policy at Individual Disks level    (Should be WriteBack)
+dcli -l root -g all_group "/opt/MegaRAID/MegaCli/MegaCli64 -LDInfo -Lall -a0 |grep
+'Cache Policy:'"
+dcli -l root -g all_group "/opt/MegaRAID/MegaCli/MegaCli64 -LDInfo -Lall -a0 |grep
+'Cache Policy:' |grep Through"
+
+#-- Check Battery Type
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | grep BatteryType'
+#-- Check Battery Charging status
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | grep "Charging Status" '
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | grep "Discharging" '
+
+
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | while read line ; do echo '
+
+
+Upgrade Disk Firmware
+#######################
+/opt/oracle.SupportTools/CheckHWnFWProfile -action updatefw -component HardDisk
+-attribute all_fw -slot 8:1 -caller MS
+/opt/MegaRAID/MegaCli/MegaCli64 -PdFwDownload -PhysDrv[8:1] -f
+/var/log/exadatatmp/firmware/ActualFirmwareFiles/H7240AS60.A2D2.fw -a0
+
+
+
+################################
+#-- Check Battery Learn Cycle
+###############################
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64   -AdpBbuCmd -a0 | grep
+"Auto-Learn Mode" '
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64   -AdpBbuCmd
+-GetBbuProperties -a0'|grep 'Auto Learn Period'
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64   -AdpBbuCmd -a0 | grep
+"Learn Cycle Active" '
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64   -AdpBbuCmd -a0 | grep
+"Learn Cycle Requested" '
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64   -AdpBbuCmd -a0 | grep
+"Learn Cycle Status" '
+
+
+#-- Initiate Battery Learn Cycle
+/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -BbuLearn -a0
+
+#-- Check auto learn mode, Should be enabled on compute node and disabled on cell
+node.
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd
+-GetBbuProperties -a0'|grep 'Auto-Learn Mode'
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd
+-GetBbuProperties -a0'|grep 'Auto Learn Period'
+
+
+
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd
+-GetBbuProperties -a0'
+
+
+#-- Check current battery temperature (Should be < 60 C)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -a0 | grep
+Temperature:'
+
+
+#-- Check current Battery Charge Capacity (Should be > 800 mAh)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd
+-GetBbuCapacityInfo -a0 | grep "Full Charge" '
+
+#-- Check current Battery erors (Should be < 10%)
+dcli -l root -g all_group '/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus
+-a0 | grep "Max Error"'
+
+
+#-- Display all information on Disk Controller
+/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aALL
+
+#-- Display Summary
+/opt/MegaRAID/MegaCli/MegaCli64 -ShowSummary -aALL
+
+
+
+
+##########################
+# Recreate the Cell
+##########################
+
+#-- Drop disks from ASM diskgroup
+sqlplus / as sysasm
+alter diskgroup DATA drop disks in failgroup LABCELL03 force;
+alter diskgroup RECO drop disks in failgroup LABCELL03 force;
+alter diskgroup DBFS_DG drop disks in failgroup LABCELL03 force;
+
+#-- Create   celldisk   and griddisks
+cellcli -e   ' create   celldisk all '
+cellcli -e   ' CREATE   GRIDDISK ALL HARDDISK PREFIX=DATA , size=212G '
+cellcli -e   ' CREATE   GRIDDISK ALL HARDDISK PREFIX=RECO , size=29.125G '
+cellcli -e   ' CREATE   GRIDDISK ALL HARDDISK PREFIX=DBFS_DG , size=29.125G '
+
+cellcli -e ' CREATE GRIDDISK ALL FlashDisk PREFIX=FLASH_DM01 , size=212G '
+cellcli -e ' CREATE GRIDDISK ALL HARDDISK PREFIX=RECO , size=29.125G '
+
+
+
+#-- Add disk to ASM diskgroup
+sqlplus / as sysasm
+alter diskgroup DATA add failgroup LABCELL03 disk 'o/192.168.10.5/DATA*' rebalance
+power 11 nowait;
+alter diskgroup RECO add failgroup LABCELL03 disk 'o/192.168.10.5/RECO*' rebalance
+power 11 nowait;
+alter diskgroup DBFS_DG add failgroup LABCELL03 disk 'o/192.168.10.5/DBFS_DG*'
+rebalance power 11 nowait;
+
+
+##########################
+# Exadata Cell Metrics
+##########################
+
+#  Metric definition
+  cellcli -e describe METRICDEFINITION
+  cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where name like
+'FC.*' "
+  cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where name like
+'DB.*' "
+  cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where description
+like '.*flash.*'    "
+  cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where description
+like '.*read.*'   "
+  cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where description
+like '.*write.*per.*sec.*'   "
+
+
+
+
+Cluster wide metrics
+
+#---------------------------
+# Smart IO Metrics
+#---------------------------
+cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description where name like
+'SIO.*' "
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_EL_OF' " #The cumulative number of megabytes eligible for offload by smart
+I/O.
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_OF_RE' " #The cumulative number of interconnect megabytes returned by
+smart I/O.
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_EL_OF_SEC' "
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_OF_RE_SEC' "
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_RD_FC_SEC' " #Number of megabytes per second read from flash cache by
+smart IO
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_RD_HD_SEC' " #Number of megabytes per second read from hard disk by smart
+IO
+dcli -l root -g cell_group "cellcli -e list metriccurrent where name =
+'SIO_IO_SI_SV_SEC' " #Number of megabytes per second saved by storage index
+
+#---------------------------
+# FlashCache Metrics
+#---------------------------
+    cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description   where name like
+'.*FC.*' "
+    cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description   where description
+like '.*flash.*' "
+    cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description   where name like
+'.*FC.*' and description like '.*read.*' "
+    cellcli -e "list METRICDEFINITION attributes
+name,metricType,objectType,persistencePolicy,unit,description   where name like
+'.*FC.*' and description like '.*writ.*' "
+
+         FC_BY_ALLOCATED                         Instantaneous     FLASHCACHE       MB
+"Number of megabytes allocated in flash cache"
+         FC_BY_DIRTY                             Instantaneous     FLASHCACHE       MB
+"Number of unflushed megabytes in FlashCache"
+         FC_BY_STALE_DIRTY                       Instantaneous   FLASHCACHE      MB
+"Number of unflushed megabytes in FlashCache which cannot be flushed because cached
+disks are not accessible"
+         FC_BY_USED                              Instantaneous   FLASHCACHE      MB
+"Number of megabytes used on FlashCache"
+         FC_IO_BY_R                              Cumulative      FLASHCACHE      MB
+"Number of megabytes read from FlashCache"
+         FC_IO_BY_R_SEC                          Rate            FLASHCACHE
+MB/sec          "Number of megabytes read per second from FlashCache"
+         FC_IO_RQ_R                              Cumulative      FLASHCACHE
+"IO requests"   "Number of requests read from FlashCache"
+         FC_IO_RQ_R_SEC                          Rate            FLASHCACHE
+IO/sec          "Number of requests read per second from FlashCache"
+         FC_IO_BY_W                              Cumulative      FLASHCACHE      MB
+"Number of megabytes written to FlashCache"
+         FC_IO_BY_W_SEC                          Rate            FLASHCACHE
+MB/sec          "Number of megabytes per second written to FlashCache"
+
+         FC_IO_BY_W_POPULATE_SEC                 Rate            FLASHCACHE
+MB/sec          "Number of megabytes per second that are population writes into
+flash cache due to read miss"
+
+    # FlashCache Bytes Used Across the cluster
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name LIKE
+'FC_BY_.*' " |sort -k2,2
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_BY_ALLOCATED' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_BY_DIRTY' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_BY_STALE_DIRTY' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_BY_USED' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_IO_BY_R_SEC' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_IO_BY_W_SEC' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_IO_RQ_R_SEC' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_IO_RQ_W_SEC' "
+    dcli -l root -g cell_group "cellcli -e list   metriccurrent   where name =
+'FC_IO_BY_W_SEC' "
+
+#---------------------------
+# Database IO per second
+#---------------------------
+
+    # Current Metric
+    cellcli -e "describe metriccurrent"
+
+    cellcli -e list metriccurrent   where name = 'DB_IO_BY_SEC'
+    cellcli -e list metriccurrent   where name = 'DB_FC_IO_BY_SEC'
+    cellcli -e list metriccurrent   where name = 'FC_BY_USED'
+
+    ######################
+    #-- Metric History
+    ######################
+    cellcli -e "describe metrichistory"
+
+    #-------------------
+    # Last 10 minutes
+    #-------------------
+    cellcli -e "list metrichistory where name = 'DB_IO_BY_SEC' and collectionTime >
+'`date --date=\" 10 min ago \" +%Y-%m-%dT%H:%M:%S%z`' "
+
+    #----------------------------
+    # Last 1 hour for a database
+    #----------------------------
+    cellcli -e "list metrichistory attributes
+collectionTime,metricObjectName,name,metricValue,metricValueAvg,metricValueMax,metr
+icValueMin where name = 'DB_IO_BY_SEC' \
+    and collectionTime > '`date --date=\" 1 hour ago \" +%Y-%m-%dT%H:%M:%S%z`' "
+
+    and metricObjectName = 'STBY52_PR01HSTI'
+
+
+
+
+    cellcli -e "list metrichistory attributes
+collectionTime,name,metricValue,metricValueAvg,metricValueMax,metricValueMin \
+    where name = 'FC_BY_USED' and collectionTime > '`date --date=\" 24 hours
+ago \" +%Y-%m-%dT%H:%M:%S%z`' "
+
+    #----------------------------
+    # Specific Time Window
+    #----------------------------
+    cellcli -e "list metrichistory where name = 'DB_IO_BY_SEC' and metricObjectName
+= 'STBY52_PR01PIMI' and collectionTime > '2015-04-16T14:00:00-08:00' and
+collectionTime < '2015-04-16T18:00:00-08:00' "
+
+
+
+    ##########################################
+    # Storage Server Metric By database
+    ###########################################
+
+    DB_FC_IO_BY_SEC    The number of megabytes of I/O per second for this database
+to flash cache.
+    DB_FC_IO_RQ        The number of I/O requests issued by a database to flash
+cache.
+    DB_FC_IO_RQ_SEC    The number of I/O requests issued by a database to flash
+cache per second.
+
+    DB_FD_IO_BY_SEC     The   number of megabytes of I/O per second for this database
+to flash disks.
+    DB_FD_IO_LOAD       The   average I/O load from this database for flash disks.
+    DB_FD_IO_RQ_LG      The   number of large I/O requests issued by a database to
+flash disks.
+    DB_FD_IO_RQ_LG_SEC The    number of large I/O requests issued by a database to
+flash disks per second.
+    DB_FD_IO_RQ_SM      The   number of small I/O requests issued by a database to
+flash disks.
+    DB_FD_IO_RQ_SM_SEC The    number of small I/O requests issued by a database to
+flash disks per second.
+    DB_FD_IO_TM         The   cumulative latency of reading blocks by a database from
+flash disks.
+    DB_FD_IO_TM_RQ      The   rate which is the average latency of reading blocks per
+request by a database from    flash disks.
+    DB_FD_IO_UTIL       The   percentage of flash resources utilized from this
+database.
+
+    DB_FL_IO_BY        The number    of megabytes written to Oracle Exadata Smart
+Flash Log.
+    DB_FL_IO_BY_SEC    The number    of megabytes written per second to Oracle Exadata
+Smart Flash Log.
+    DB_FL_IO_RQ        The number    of I/O requests issued to Oracle Exadata Smart
+Flash Log.
+    DB_FL_IO_RQ_SEC    The number    of I/O requests per second issued to Oracle
+Exadata Smart Flash Log.
+    FL_IO_DB_BY_W      The number    of megabytes written to hard disk by Oracle
+Exadata Smart Flash Log.
+    FL_IO_DB_BY_W_SEC The number     of megabytes written per second were written to
+hard disk by Oracle Exadata Smart    Flash Log.
+
+    DB_IO_BY_SEC       The number of megabytes of I/O per second for this database
+to hard disks.
+    DB_IO_LOAD         The average I/O load from this database for hard disks.
+    DB_IO_RQ_LG        The cumulative number of large I/O requests issued by the
+database. A large value indicates a heavy large I/O workload from this database.
+    DB_IO_RQ_LG_SEC    The rate of large I/O requests issued by a consumer group
+per second over the past minute. A large value indicates a heavy large I/O workload
+from this database in the past minute.
+    DB_IO_RQ_SM        The cumulative number of small I/O requests issued by the
+database. A large value indicates a heavy small I/O workload from this database.
+    DB_IO_RQ_SM_SEC    The rate of small I/O requests issued by a consumer group
+per second over the past minute. A large value indicates a heavy small I/O workload
+issued by this database in the past minute.
+    DB_IO_TM_LG        The cumulative latency of reading large blocks by a database
+from hard disks.
+    DB_IO_TM_LG_RQ     The rate which is the average latency of reading large
+blocks per request by a database from hard disks.
+    DB_IO_TM_SM        The cumulative latency of reading small blocks by a database
+from hard disks.
+    DB_IO_TM_SM_RQ     The rate which is the average latency of reading small
+blocks per request by a database from hard disks.
+    DB_IO_UTIL_LG      The percentage of disk resources utilized by large requests
+from this database.
+    DB_IO_UTIL_SM      The percentage of disk resources utilized by small requests
+from this database.
+    DB_IO_WT_LG        The cumulative number of milliseconds that large I/O
+requests issued by the database have waited to be scheduled by IORM. A large value
+indicates that the I/O workload from this database is exceeding the allocation
+specified for it in the interdatabase plan.
+    DB_IO_WT_LG_RQ     The average number of milliseconds that large I/O requests
+issued by the database have waited to be scheduled by IORM in the past minute. A
+large value indicates that the I/O workload from this database is exceeding the
+allocation specified for it in the interdatabase plan.
+    DB_IO_WT_SM        The cumulative number of milliseconds that small I/O
+requests issued by the database have waited to be scheduled by IORM. A large value
+indicates that the I/O workload from this database is exceeding the allocation
+specified for it in the interdatabase plan.
+    DB_IO_WT_SM_RQ     The average number of milliseconds that small I/O requests
+issued by the database have waited to be scheduled by IORM in the past minute. A
+large value indicates that the I/O workload from this database is exceeding the
+allocation specified for it in the interdatabase plan.
+
+
+    ###############################################
+    # Tabular IO per database (MB/sec) on a cell
+    ################################################
+    #fromtime="`date --date=\" 30 min ago \" +%Y-%m-%dT%H:%M:%S%z`"
+    #totime="`date +%Y-%m-%dT%H:%M:%S%z`"
+    fromtime='2016-02-16T07:30:00-08:00'
+    totime='2016-02-16T10:30:00-08:00'
+    # DB_IO_BY_SEC
+    # DB_IO_RQ_SM_SEC
+    # DB_IO_RQ_LG_SEC
+    # DB_IO_UTIL_SM
+    # DB_IO_UTIL_LG
+    # DB_FD_IO_RQ_SM_SEC
+    # DB_FD_IO_RQ_LG_SEC
+
+    declare -a DB=(`cellcli -e "list metriccurrent attributes metricObjectName
+where name = 'DB_IO_LOAD' " |awk '{print $1} ' |xargs echo`)
+    for ((i=-1; i<${#DB[@]}; i++))
+    do
+       if [ "$i" == -1 ]; then
+           printf "\n";
+           printf "%25s"    "collectionTime"
+       else
+           printf "%$(expr ${#DB[$i]} + 1)s"    "${DB[$i]}"
+       fi
+       if [ "$i" == `expr ${#DB[@]} - 1` ]; then      printf "     Total \n"; fi;
+    done; \
+    i=0; \
+    total=0; \
+    cellcli -e "list metrichistory attributes
+collectionTime,metricObjectName,metricValue where name = 'DB_IO_LOAD'
+    and collectionTime > '$fromtime' and collectionTime < '$totime' and
+metricObjectName like '.*.*' " |
+    while read LINE
+    do
+       collectionTime=`echo $LINE |awk '{print $1}'`
+       metricObjectName=`echo $LINE |awk '{print $2}'`
+       metricValue=`echo $LINE |awk '{print $3}'| tr -d ','` # Remove commas
+       #if [ "$metricObjectName" == "${DB[$(expr ${#DB[@]} - 1 )]}" ]
+       if [ "$i" -eq 0 ]
+       then
+            printf "%25s "    "$collectionTime"
+       fi;
+       #Round off decimals
+       printf "%$(expr ${#DB[$i]} + 1)s"     $(printf '%.*f' 0 "$metricValue")
+       total=$(awk "BEGIN {print $total + $metricValue; exit}")
+       #printf "%6s"     "$metricValue"
+       i=$(expr $i + 1)
+       if [ $i -eq ${#DB[@]} ] ; then
+           i=0;
+           printf "%10s"    $(printf '%.*f' 0 "$total");
+           printf "\n";
+           total=0;
+       fi
+    done; printf "\n";
+
+
+
+cellcli -e "list metrichistory attributes
+collectionTime,metricObjectName,name,metricValue where collectionTime > '2015-05-
+21T05:36:46-0700' and collectionTime < '2015-05-21T05:40:46-0700'    and name like
+'.*DB.*' and metricObjectName = 'STBY02_PR01MTGI' " |sort -k1,2,3
+
+
+
+    ##########################################
+    # Tabular database IO on a cell
+    # (Multiple metrics for a database)
+    ###########################################
+
+    # cellcli -e "list metriccurrent attributes metricObjectName      where name =
+'DB_IO_BY_SEC' " |awk '{print $1} '
+
+    #fromtime="`date --date=\" 30 min ago \" +%Y-%m-%dT%H:%M:%S%z`"
+    #totime="`date --date=\" 1 min ago \" +%Y-%m-%dT%H:%M:%S%z`"
+    fromtime='2015-11-08T00:00:00-08:00'
+    totime='2015-11-08T03:00:00-08:00'
+    DBNAME=ST01PIMI
+
+    #Order the metriclist in Alphabetical order
+    declare -a METRICLIST="DB_FC_IO_BY_SEC     DB_FC_IO_RQ_SEC DB_FD_IO_UTIL
+DB_IO_BY_SEC DB_IO_LOAD     DB_IO_RQ_LG_SEC    DB_IO_RQ_SM_SEC      DB_IO_WT_LG_RQ
+DB_IO_WT_SM_RQ " ; \
+    declare -a METRICLIST=(${METRICLIST}) ; \
+    echo ""                                                       ; \
+    echo "#############################################"          ; \
+    echo "#### Database - $DBNAME                         "       ; \
+    echo "#############################################"          ; \
+    echo ""                                                       ; \
+    PRINT_FORMAT="%25s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s %12s" ; \
+    printf "${PRINT_FORMAT}" "--------------" "------" "-------" "---------"
+"------" "-------"    "--------" "--------" "--------" "--------" ; printf "\n" ;
+\
+    printf "${PRINT_FORMAT}" "collectionTime" "Flash"       "Flash" "FlashDisk"
+"Total"        ""            ""         "" "Large IO" "Small IO" ; printf
+"\n" ; \
+    printf "${PRINT_FORMAT}"                " " "Cache"     "Cache"       "Load"
+"IO" "IO Load"    "Large IO" "Small IO"   "AvgWait"     "AvgWait" ; printf "\n" ; \
+    printf "${PRINT_FORMAT}"                " " "MB/Sec" "Req/Sec"         "(%)"
+"MB/Sec"     "(%)"     "Req/Sec" "Req/Sec"        "(ms)"      "(ms)"    ; printf "\n" ;
+\
+    printf "${PRINT_FORMAT}" "--------------" "------" "-------" "---------"
+"------" "-------"    "--------" "--------" "--------" "--------" ; printf "\n" ;
+\
+    printf "\n" ; \
+    i=0; \
+    cellcli -e "list metrichistory attributes
+collectionTime,metricObjectName,name,metricValue where
+    collectionTime > '$fromtime' and collectionTime < '$totime'
+    and metricObjectName like '$DBNAME'
+    and name like '$(echo ${METRICLIST[*]} | tr " " "|" )'
+    " | sort -k1,3 | while read LINE
+    do
+       collectionTime=`echo $LINE |awk '{print $1}'`
+       metricObjectName=`echo $LINE |awk '{print $2}'`
+       metricName=`echo $LINE |awk '{print $3}'`
+       if [ "$i" -eq 0 ]
+       then
+            printf "%25s"    "$collectionTime"
+       fi
+       while [ $i -lt ${#METRICLIST[@]} ]
+       do
+            if [ "${METRICLIST[$i]}" == "$metricName" ]
+            then
+                 metricValue=`echo $LINE |awk '{print $4}'`
+                 break
+            else
+                 metricValue=""
+                 printf "%13s" "$metricValue"
+                 i=$(expr $i + 1)
+                 continue
+            fi
+       done;
+       # Remove commas
+       metricValue=$(echo $metricValue | tr -d ',' )
+       # Round off decimals
+       if    [ "$metricName" != "DB_IO_LOAD" ] && [[ "$metricName" != DB_IO_WT* ]]
+       then
+          metricValue=$(printf '%.*f' 0 "$metricValue"|awk '{print $1}')
+       fi
+       printf "%13s" "$metricValue"
+       #printf "%30s" "$metricName $metricValue"
+       i=$(expr $i + 1)
+       if [ $i -ge ${#METRICLIST[@]} ] ; then
+          i=0;
+          printf "\n"
+       fi
+    done; printf "\n" ;
+
+
+##########################
+# colleclt Commands
+##########################
+collectl -scdmnfx -o T -i 2
+
+
+##########################
+# Colmux Commands
+##########################
+colmux -command -scdmnf -reverse -column 0 -addr <comma-separated-server-LIST or
+filename>
+
+#-- For Exadata
+colmux -command -scdmnf -reverse -column 0 -port 64000 -addr all_group
+
+#---------------------------------------------
+# Collectl top or Colmux top
+# Show cluster wide top (order by CPU Pct)
+#---------------------------------------------
+colmux -command "-sZ -i:2 " -column 12 -lines 50 -port 64123 -addr dbs_group
+colmux -command "-sZ -i:2 --procfilt=fora_smon " -column 12 -lines 50 -port 64123
+-addr dbs_group
+colmux -command "-sZ -i:2 --procfilt=fbt01pimi " -column 12 -lines 50 -port 64123
+-addr dbs_group_bt01pimi
+
+#-------------------------
+# Hard Disk Statistics
+#-------------------------
+sudo colmux -command '-sD '   -lines 100 -reverse -column 1 -port 64002 -addr
+dm02cel01
+
+
+
+# Show individual disk details
+# Exadata spinning disks - sd[a-l]
+# Exadata Flashdisks - sd[m-z] & sda[a-c]
+colmux -command '-sD --dskfilt sd[a-b]$' -reverse -column 0 -port 64123 -addr
+cell_group
+
+
+
+##########################
+# Colplot commands
+##########################
+colplot -dir /var/log/collectl/consolidated -contains dm01db01 -date "20120909"
+-time "00:00-24:00" -plots cpu,mem,disk,net,nfssum,ib,paging,swap,inode,proc,tcp
+-filetype pdf -email emailaddress -subject "DM01 Plots"
+colplot -dir /var/log/collectl/consolidated -contains dm01db01 -date "20120909-
+20120910" -time "00:00-24:00" -plots
+cpu,mem,disk,net,nfssum,ib,paging,swap,inode,proc,tcp -filetype pdf -email
+vishal@vishalgupta.com -subject "DM01 Plots"
+
+colplot -dir /export/ora_stage/colplot -contains dm51cel01 -date "20130303" -time
+"00:00-24:00" -plots disk -filetype pdf -email vishal@vishalgupta.com -subject
+"DM51 Plots"
+
+colplot -dir /usr/share/collectl/plotfiles -plots cpu -filetype png -email
+vishal@vishalgupta.com -email "/export/ora_stage/colplot_graphs/dm02db01.png"
+
+colplot -dir /var/log/collectl -contains dm02db01 -date "20130325-20130325" -time
+"18:19-19:19" -plots cpu -width 0.7 -height 0.3 -filetype png -filedir
+"/export/ora_stage/colplot_graphs/hourly"
+
+
+ for i in {1..9}; do mkdir dm01db0$i; done
+ for i in {0..6}; do mkdir dm01db1$i; done
+
+  for i in {1..9}; do mkdir dm01db0$i; done
+ for i in {0..6}; do mkdir dm01db1$i; done
+
+
+  for i in {1..9}; do mkdir dm01cel0$i; done
+  for i in {0..9}; do mkdir dm01cel1$i; done
+  for i in {0..8}; do mkdir dm01cel2$i; done
+
+
+
+##########################
+# Install Collectl
+##########################
+#-- ColPlot require the http to installed on the server.
+#-- Follwoign RPMs are needed for colplot to work
+    - httpd
+    - mailcap (For emails)
+         - sharutils (For /usr/bin/uuencode for emails)
+    - gnuplot
+    - ghostscript   (For PDFs)
+       - cups-libs
+       - cairo
+       - libtiff
+       - urw-fonts
+          - chkfontpath
+          - xorg-x11-font-utils
+    - ghostscript-fonts (For PDFs)
+
+dcli -l root -g ~/all_group -f /export/ora_stage/vishal/collectl/collectl-3.6.1-
+4.noarch.rpm -d /var/tmp/
+dcli -l root -g ~/all_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+3.1.0-1.noarch.rpm -d /var/tmp/
+dcli -l root -g ~/all_group rpm -Uvh /var/tmp/collectl-3.6.1-4.noarch.rpm
+/var/tmp/collectl-utils-3.1.0-1.noarch.rpm
+dcli -l root -g ~/all_group service collectl start
+dcli -l root -g ~/all_group service collectl status
+
+dcli -l root -g ~/dbs_group mkdir /var/www/html/colplot
+dcli -l root -g ~/dbs_group ln -s /usr/share/doc/collectl-utils-3.2.1/FAQ-
+colplot.html /var/www/html/colplot/FAQ-colplot.html
+dcli -l root -g ~/dbs_group ln -s /usr/share/doc/collectl-utils-3.2.1/FAQ-
+colgui.html /var/www/html/colplot/FAQ-colgui.html
+dcli -l root -g ~/dbs_group ln -s /usr/share/doc/collectl-utils-3.2.1/colplot-
+help.html /var/www/html/colplot/colplot-help.html
+
+##########################
+# Setup Colplot
+##########################
+#-- Add "-P -oz" to following line in /etc/collectl.conf
+DaemonCommands = -f /var/log/collectl -r00:00,7 -m -F60 -s+YZ -P -oz
+
+dcli -l root -g all_group grep ^DaemonCommands /etc/collectl.conf
+dcli -l root -g all_group -f /etc/collectl.conf -d /etc
+dcli -l root -g all_group grep ^DaemonCommands /etc/collectl.conf
+
+#-- Restart collectl
+dcli -l root -g all_group   service   collectl   status
+dcli -l root -g all_group   service   collectl   stop
+dcli -l root -g all_group   service   collectl   start
+dcli -l root -g all_group   service   collectl   status
+
+dcli -l root -g all_group 'ls /var/log/collectl/*tab*'
+
+
+#-- Remove older file stored in compressed format.
+dcli -l root -g all_group 'rm /var/log/collectl/*raw*'
+dcli -l root -g all_group 'rm /var/log/collectl/*log*'
+
+#-- Transfer existing files
+for i in `cat all_group`
+do
+   scp -p $i:/var/log/collectl/*tab /export/ora_stage/colplot/
+  scp -p $i:/var/log/collectl/*prc /export/ora_stage/colplot/
+  scp -p $i:/var/log/collectl/*slb /export/ora_stage/colplot/
+done
+
+#-- Setup collectl consolidation
+# Added by Vishal Gupta for Ron Reimer
+# It consolidates today's collectl statistics files from all nodes to single node
+# so that graphs could be generated in a single browser
+* * * * * /export/u02/dba/monitoring/scripts/collectl_consolidation.sh >
+/tmp/collectl_consolidation.log 2>&1
+5 0 * * * /export/u02/dba/monitoring/scripts/collectl_consolidation_daily.sh >
+/tmp/collectl_consolidation_daily.log 2>&1
+
+#-- Check Colplot default directory
+dcli -l root -g dbs_group ' grep PlotDir /etc/colplot.conf'
+
+
+###########################################
+# Collectl Changes/Customizatons
+###########################################
+
+######### collectl ###########
+
+- /etc/collectl.conf
+    - Gather configuration to store data in plottable format
+
+      # START - Changed by Vishal
+      #DaemonCommands = -f /var/log/collectl -r00:00,7 -m -F60 -sYZ
+      DaemonCommands = -f /var/log/collectl -r00:00,7 -m -F60 -P -oz
+-sbcdfijmnstxDN
+      # END - Changed by Vishal
+
+######### colplot ###########
+
+- /usr/bin/colplot
+   - Change colplot home page cgi script to stop it from trying to find earlier and
+latest file.
+
+         my $pparams= {fdate=>20010101, tdate=>29991231, contains=>'',
+unique=>$uniqueFlag };
+         #Changed by Vishal
+         #findFiles(3, $mycfg, $pparams, "$dir$sep*", undef) ||
+         #     error("No plottable files match your selection criteria.   Are your
+dir and/or file protections right?");
+
+   - Default the output radio button to last 30 mintues.
+
+         # START - Changed by Vishal
+         #print "<input type=radio name=timeframe value=fixed checked>\n";
+         #print "<font=5><i>OR</i>\n";
+         #print "<b>Last: <input type=text name=winsize size=1 value=$winsize>
+Minutes\n";
+         #print "<input type=radio name=timeframe value=float>\n";
+         print "<input type=radio name=timeframe value=fixed>\n";
+         print "<font=5><i>OR</i>\n";
+         print "<b>Last: <input type=text name=winsize size=1 value=$winsize>
+Minutes\n";
+         print "<input type=radio name=timeframe value=float checked>\n";
+         # END - Changed by Vishal
+    - Change Display to PlotSys (Plot-System).
+
+       #Start of Changes by Vishal
+           <option value=sp >SysPlot</option>
+           <option value=ps selected>PlotSys</option>
+       #End Changes by Vishal
+
+    dcli -l root -g ~/all_group -d /usr/bin -f /usr/bin/colplot
+
+
+- /etc/colplot.conf
+   - Change default PlotDir
+       PlotDir = /export/ora_stage/colplot
+
+- /usr/share/collectl/colplotlib.defs
+
+      - Define DiskRead and DiskWrite plots
+
+      diskread { title=DiskReadMB          yname=[DSK]ReadKBTot }
+      diskwrite { title=DiskWriteMB        yname=[DSK]WriteKBTot }
+      diskread    { cat=disk    type=s            desc=Disk Read (MB)
+}
+      diskwrite   { cat=disk    type=s            desc=Disk Write (MB)
+}
+
+     dcli -l root -g ~/all_group -d /usr/share/collectl/ -f
+/usr/share/collectl/colplotlib.defs
+
+
+######### colmux ###########
+- Changes in /usr/bin/colmux
+
+    - Add "-o ServerAliveInterval=3600". This helps to remove the cell servers
+dropping off from colmux output.
+
+      # START - Changed by Vishal
+      #my $Ssh='/usr/bin/ssh -o StrictHostKeyChecking=no -o BatchMode=yes';
+      my $Ssh='/usr/bin/ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o
+ServerAliveInterval=60';
+      # END - Changed by Vishal
+
+
+       %s/ssh \-n/ssh \-n \-o ServerAliveInterval=3600/g
+       grep ssh /usr/bin/colmux
+       dcli -l root -g ~/all_group -d /usr/bin/ -f /usr/bin/colmux
+       grep ssh /usr/bin/colmux
+       ps -ef|grep collectl
+
+
+    - Change default age from 2 to 10
+
+       # START - Changed by Vishal
+       #my $age=2;
+       my $age=10;
+       # END - Changed by Vishal
+
+
+    - Change the interface to use for communication.
+      # Modified by Vishal
+      #$myaddr=`$Ifconfig $interface | grep addr:`;
+      $myaddr=`$Ifconfig eth0| grep addr:`;
+
+
+   dcli -l root -g ~/all_group -d /usr/bin -f /usr/bin/colmux
+
+
+##########################
+# Disable Collectl
+##########################
+dcli -l root -g ~/all_group      service collectl stop
+dcli -l root -g ~/all_group      chkconfig collectl off
+dcli -l root -g ~/all_group      chkconfig --list collectl
+
+##########################
+# Enable Collectl
+##########################
+dcli -l root -g ~/all_group      service collectl start
+dcli -l root -g ~/all_group      chkconfig collectl on
+dcli -l root -g ~/all_group      chkconfig --list collectl
+
+##########################
+# De-Install Collectl
+##########################
+dcli -l root -g ~/all_group      service collectl stop
+dcli -l root -g ~/all_group      rpm -e collectl collectl-utils
+
+#####################################
+# Install collectl on all nodes
+######################################
+dcli -l root -g all_group cp -p /etc/collectl.conf /tmp/
+
+dcli -l root   -g   all_group -f /export/ora_stage/vishal/collectl/collectl-3.6.5-
+2.noarch.rpm   -d   /var/tmp/
+dcli -l root   -g   all_group rpm -e collectl
+dcli -l root   -g   all_group rpm -Uvh /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root   -g   all_group rm /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root   -g   all_group cp -p /tmp/collectl.conf /etc/
+dcli -l root   -g   all_group service collectl start
+dcli -l root   -g   all_group service collectl status
+dcli -l root   -g   all_group chkconfig collectl on
+dcli -l root   -g   all_group chkconfig --list collectl
+dcli -l root   -g   all_group rm -f /etc/collectl.conf.rpmsave
+
+
+#############################################
+# Install collectl-utils on all nodes
+############################################
+dcli -l root -g dbs_group cp -p /etc/colplot.conf /tmp/
+dcli -l root -g all_group '/usr/bin/collectl -v |head -1'
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-
+3.7.4.src.tar.gz -d /var/tmp/
+dcli -l root -g all_group "cd /var/tmp/ ; gunzip -c collectl-3.7.4.src.tar.gz |tar
+xvf - > /dev/null"
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group service collectl stop
+dcli -l root -g all_group chkconfig collectl off
+dcli   -l   root   -g   all_group chkconfig --list collectl
+dcli   -l   root   -g   all_group rpm -e collectl
+dcli   -l   root   -g   all_group rpm -q collectl
+dcli   -l   root   -g   all_group "cd /var/tmp/collectl-3.7.4; sh INSTALL"
+dcli   -l   root   -g   all_group '/usr/bin/collectl -v |head -1'
+dcli   -l   root   -g   all_group -f /tmp/collectl.conf -d /tmp/
+dcli   -l   root   -g   all_group cp -p /tmp/collectl.conf /etc/
+dcli   -l   root   -g   all_group service collectl start
+dcli   -l   root   -g   all_group service collectl status
+dcli   -l   root   -g   all_group chkconfig collectl on
+dcli   -l   root   -g   all_group chkconfig --list collectl
+dcli   -l   root   -g   all_group rm /var/tmp/collectl-3.7.4.src.tar.gz
+dcli   -l   root   -g   all_group rm -fR /var/tmp/collectl-3.7.4
+dcli   -l   root   -g   all_group rm -f /etc/collectl.conf.rpmsave
+
+
+#####################################
+# Upgrade collectl to 3.6.5-2
+######################################
+dcli -l root -g all_group rpm -q collectl
+dcli -l root -g all_group cp -p /etc/collectl.conf /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-3.6.5-
+2.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group service collectl stop
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root -g all_group rpm -q collectl
+dcli -l root -g all_group cp -p /tmp/collectl.conf /etc/
+dcli -l root -g all_group service collectl start
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group chkconfig collectl on
+dcli -l root -g all_group chkconfig --list collectl
+dcli -l root -g all_group rm /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+
+
+#####################################
+# Downgrade collectl to 3.6.5-2
+######################################
+dcli -l root -g all_group cp -p /etc/collectl.conf /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-3.6.5-
+2.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group rpm -e collectl
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root -g all_group rm /var/tmp/collectl-3.6.5-2.noarch.rpm
+dcli -l root -g all_group cp -p /tmp/collectl.conf /etc/
+dcli -l root -g all_group service collectl start
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group chkconfig collectl on
+dcli -l root -g all_group chkconfig --list collectl
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+
+
+#####################################
+# Upgrade collectl to 3.6.9-1
+######################################
+dcli -l root -g all_group rpm -q collectl
+dcli -l root -g all_group cp -p /etc/collectl.conf /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-3.6.9-
+1.noarch.rpm -d /var/tmp/
+dcli   -l   root   -g   all_group service collectl stop
+dcli   -l   root   -g   all_group rpm -Uvh /var/tmp/collectl-3.6.9-1.noarch.rpm
+dcli   -l   root   -g   all_group rpm -q collectl
+dcli   -l   root   -g   all_group cp -p /tmp/collectl.conf /etc/
+dcli   -l   root   -g   all_group service collectl start
+dcli   -l   root   -g   all_group service collectl status
+dcli   -l   root   -g   all_group chkconfig collectl on
+dcli   -l   root   -g   all_group chkconfig --list collectl
+dcli   -l   root   -g   all_group rm /var/tmp/collectl-3.6.9-1.noarch.rpm
+dcli   -l   root   -g   all_group rm -f /etc/collectl.conf.rpmsave
+
+#####################################
+# Upgrade collectl to 3.7.4-1
+######################################
+dcli -l root -g all_group cp -p /etc/collectl.conf /tmp/
+dcli -l root -g all_group '/usr/bin/collectl -v |head -1'
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-
+3.7.4.src.tar.gz -d /var/tmp/
+dcli -l root -g all_group "cd /var/tmp/ ; gunzip -c collectl-3.7.4.src.tar.gz |tar
+xvf - > /dev/null"
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group service collectl stop
+dcli -l root -g all_group chkconfig collectl off
+dcli -l root -g all_group chkconfig --list collectl
+dcli -l root -g all_group rpm -e collectl
+dcli -l root -g all_group rpm -q collectl
+dcli -l root -g all_group "cd /var/tmp/collectl-3.7.4; sh INSTALL"
+dcli -l root -g all_group '/usr/bin/collectl -v |head -1'
+dcli -l root -g all_group cp -p /tmp/collectl.conf /etc/
+dcli -l root -g all_group -d /etc/ -f /etc/collectl.conf
+dcli -l root -g all_group service collectl start
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group chkconfig collectl on
+dcli -l root -g all_group chkconfig --list collectl
+dcli -l root -g all_group rm /var/tmp/collectl-3.7.4.src.tar.gz
+dcli -l root -g all_group rm -fR /var/tmp/collectl-3.7.4
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+
+
+#####################################
+# Upgrade collectl-utils to 3.1.0-1
+######################################
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group cp -p /etc/colplot.conf /usr/bin/colplot /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+3.1.0-1.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group rpm -e collectl-utils
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-utils-3.1.0-1.noarch.rpm
+dcli -l root -g all_group rm /var/tmp/collectl-utils-3.1.0-1.noarch.rpm
+dcli -l root -g all_group cp -p /tmp/colplot.conf /etc/
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+/etc/colplot.conf.rpmsave
+dcli -l root -g all_group rpm -q collectl-utils
+#dcli -l root -g all_group cp -p /tmp/colplot /usr/bin/colplot
+#dcli -l root -g all_group cp -p /tmp/colmux /usr/bin/colmux
+
+#####################################
+# Upgrade collectl-utils to 3.2.1-1
+######################################
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group cp -p /etc/colplot.conf /usr/bin/colplot
+/usr/bin/colmux /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+3.2.1-1.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group rpm -e collectl-utils
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-utils-3.2.1-1.noarch.rpm
+dcli -l root -g all_group rm /var/tmp/collectl-utils-3.2.1-1.noarch.rpm
+dcli -l root -g all_group cp -p /tmp/colplot.conf /etc/
+dcli -l root -g all_group cp -p /tmp/colplot /usr/bin/colplot
+dcli -l root -g all_group cp -p /tmp/colmux /usr/bin/colmux
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+/etc/colplot.conf.rpmsave
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group service httpd restart
+
+########################################
+# Downgrade collectl-utils to 3.2.1-1
+########################################
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group cp -p /etc/colplot.conf /usr/bin/colplot
+/usr/bin/colmux /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+3.2.1-1.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group rpm -e collectl-utils
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-utils-3.2.1-1.noarch.rpm
+dcli -l root -g all_group rm /var/tmp/collectl-utils-3.2.1-1.noarch.rpm
+dcli -l root -g all_group cp -p /tmp/colplot.conf /etc/
+dcli -l root -g all_group cp -p /tmp/colplot /usr/bin/colplot
+dcli -l root -g all_group cp -p /tmp/colmux /usr/bin/colmux
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+/etc/colplot.conf.rpmsave
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group service httpd restart
+
+
+######################################
+# Upgrade collectl-utils to 4.7.1-1
+######################################
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group cp -p /etc/colplot.conf /usr/bin/colplot
+/usr/bin/colmux /tmp/
+dcli -l root -g all_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+4.7.1-1.noarch.rpm -d /var/tmp/
+dcli -l root -g all_group rpm -e collectl-utils
+dcli -l root -g all_group rpm -Uvh /var/tmp/collectl-utils-4.7.1-1.noarch.rpm
+dcli -l root -g all_group rm /var/tmp/collectl-utils-4.7.1-1.noarch.rpm
+dcli -l root -g all_group -f /tmp/colplot.conf -d /etc/
+dcli -l root -g all_group -f /tmp/colmux -d /usr/bin/
+dcli -l root -g all_group rm -f /etc/collectl.conf.rpmsave
+/etc/colplot.conf.rpmsave
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group service httpd restart
+
+##############################
+# Install after cell patching (Collectl 3.7.4, collectl-utils 4.7.1-1 )
+###############################
+dcli -l root -g cell_group '/usr/bin/collectl -v |head -1'
+dcli -l root -g cell_group -f /export/ora_stage/vishal/collectl/collectl-
+3.7.4.src.tar.gz -d /var/tmp/
+dcli -l root -g cell_group "cd /var/tmp/ ; gunzip -c collectl-3.7.4.src.tar.gz |
+tar xvf - > /dev/null"
+dcli -l root -g cell_group "cd /var/tmp/collectl-3.7.4; sh INSTALL"
+dcli -l root -g cell_group '/usr/bin/collectl -v |head -1'
+dcli -l root -g cell_group -f /export/ora_stage/vishal/collectl/collectl-utils-
+4.7.1-1.noarch.rpm -d /var/tmp/
+dcli -l root -g cell_group rpm -Uvh /var/tmp/collectl-utils-4.7.1-1.noarch.rpm
+dcli -l root -g cell_group rpm -q collectl-utils
+dcli -l root -g cell_group rm /var/tmp/collectl-3.7.4.src.tar.gz
+dcli -l root -g cell_group rm -fR /var/tmp/collectl-3.7.4
+dcli -l root -g cell_group rm -f /etc/collectl.conf.rpmsave
+dcli -l root -g cell_group rm /var/tmp/collectl-utils-4.7.1-1.noarch.rpm
+dcli -l root -g cell_group -d /etc -f /etc/collectl.conf
+dcli -l root -g cell_group -d /etc -f /etc/colplot.conf
+dcli -l root -g cell_group -d /usr/bin/ -f /usr/bin/colmux
+dcli -l root -g cell_group service collectl start
+dcli -l root -g cell_group service collectl status
+dcli -l root -g cell_group chkconfig collectl on
+dcli -l root -g cell_group chkconfig --list collectl
+
+
+##########################################
+# Collect & Collectl-utils Verification
+##########################################
+dcli -l root -g all_group rpm -q collectl
+dcli -l root -g all_group rpm -q collectl-utils
+dcli -l root -g all_group service collectl status
+dcli -l root -g all_group chkconfig --list collectl
+
+#Customization Verification
+# (Needs to have -P -oz at the end of the line)
+dcli -l root -g all_group 'grep ^DaemonCommands /etc/collectl.conf'
+# (PlotDir needs to be /export/ora_stage/colplot)
+dcli -l root -g dbs_group 'grep PlotDir /etc/colplot.conf'
+# Should be 10
+dcli -l root -g all_group "grep '^my \$age' /usr/bin/colmux"
+# Should have ServerAliveInterval=60 in it
+dcli -l root -g all_group "grep '^my \$Ssh' /usr/bin/colmux"
+
+# Should be commented
+dcli -l root -g all_group "egrep 'findFiles.*undef' /var/www/html/colplot/index.cgi
+|head -1"
+
+- /var/www/html/colplot/index.cgi
+   - Change colplot home page cgi script to stop it from trying to find earlier and
+latest file.
+
+         my $pparams= {fdate=>20010101, tdate=>29991231, contains=>'',
+unique=>$uniqueFlag };
+         #Changed by Vishal
+         #findFiles(3, $mycfg, $pparams, "$dir$sep*", undef) ||
+         #     error("No plottable files match your selection criteria.   Are your
+dir and/or file protections right?");
+
+   - Default the output radio button to last 30 mintues.
+
+         #Changed by Vishal
+         #print "<input type=radio name=timeframe value=fixed checked>\n";
+         print "<input type=radio name=timeframe value=fixed>\n";
+         print "<font=5><i>OR</i>\n";
+         print "<b>Last: <input type=text name=winsize size=1 value=$winsize>
+Minutes\n";
+         #Changed by Vishal
+         #print "<input type=radio name=timeframe value=float>\n";
+         print "<input type=radio name=timeframe value=float checked>\n";
+
+
+###################################
+# Troubleshooting
+###################################
+
+###################################
+# Infiniband Troubleshooting
+###################################
+
+# Infinicheck
+###################
+/opt/oracle.SupportTools/ibdiagtools/infinicheck -g ~/dbs_ib_group
+
+
+# infiniband commands
+######################
+ibswitches
+ibhosts
+ibnodes
+ibstatus
+iblinkinfo
+
+
+# From first node
+###################
+uname -a
+cat /etc/hosts
+dcli -g all_group -l root 'imageinfo;rds-info -I|head
+-40;ibstat;ibstatus;ibnetdiscover;ibclearcounters;ibcheckstate -v;rpm -qa|grep -i
+ofa;'
+
+# From ALL IB Switches
+##########################
+uname -a
+version
+env_test
+listlinkup
+getmaster
+ibnetdiscover
+#ibclearcounters
+ibcheckstate -v
+
+
+# Check whether link is physically present or not
+cat /sys/class/net/ib0/carrier
+cat /sys/class/net/ib1/carrier
+
+##
+export SUBNET_MGR_GID=`sminfo | cut -d" " -f7 | cut -c3-16`;
+export SUBNET_MGR_LOC="OTHER";
+for IB_NODE_GID in `ibswitches | cut -c14-27`;
+do
+   if [ $SUBNET_MGR_GID = $IB_NODE_GID ];
+   then
+        export SUBNET_MGR_LOC="IB_SWITCH";
+   fi;
+done;
+echo $SUBNET_MGR_LOC;
+
+
+###################################
+# OS Watcher Commands
+###################################
+
+#############################################################
+#-- Get IO Statistics on a hardisk from OS Watcher
+#############################################################
+
+File Format
+###############
+zzz ***Tue Feb 11 09:01:54 PST 2014 Sample interval: 5 secconds
+Linux 2.6.32-400.11.1.el5uek (servername)       02/11/14
+
+Time: 09:01:54
+avg-cpu: %user     %nice %system %iowait    %steal     %idle
+           1.56     0.00    1.46    1.43      0.00     95.55
+
+Device:          rrqm/s   wrqm/s    r/s    w/s    rsec/s     wsec/s avgrq-sz avgqu-sz
+await svctm    %util
+sda                2.64    13.87   7.62 37.58    5994.46    4488.26   231.91     2.53
+55.87   1.75    7.89
+sda1               0.00     0.00   0.01   0.00       1.21      0.00   125.98     0.00
+65.33 59.17     0.06
+
+
+cd /opt/oracle.oswatcher/osw/archive/oswiostat
+
+bunzip2 -cf *iostat_13.10.01.0400*.dat* | egrep -v Device | awk '
+BEGIN {
+date="";
+time="";
+}
+{
+  if ($1 == "zzz")
+  {
+      date=$4 "-" $3 "-" $7
+    }
+  if ($1 == "Time:")
+  {
+      time=$2
+    }
+  # print entire line if svctm ($11) is greater than 50ms
+  #if ( $11 > 50) {
+  #     print date " Time: " time " " $0 ;
+  # }
+  #
+  # print entire line if %util ($12) is greater than 50%
+  if ( $12 > 50) {
+      print date " Time: " time " " $0 ;
+    }
+}
+'
+
+
+###################################################################################
+#-- Get IO Statistics on a hardisk from OS Watcher (TABULAR for each disk device)
+###################################################################################
+
+### HardDisks ##########
+cd /opt/oracle.oswatcher/osw/archive/oswiostat
+bunzip2 -cf *iostat_14.02.22*.dat* | egrep -v Device | awk '
+BEGIN {
+date=""; time="";
+printf "Date\t         Time
+\tsda\tsdb\tsdc\tsdd\tsde\tsdf\tsdg\tsdh\tsdi\tsdj\tsdk\tsdl\n" ;
+sda_val=""; sdb_val=""; sdc_val=""; sdd_val="";
+sde_val=""; sdf_val=""; sdg_val=""; sdh_val="";
+sdi_val=""; sdj_val=""; sdk_val=""; sdl_val="";
+}
+{
+  if ($1 == "zzz") {date=$4 "-" $3 "-" $7}
+  if ($1 == "Time:") {time=$2 }
+  # %util ($12)
+  if ( $1 == "sda") { sda_val= $12 };
+  if ( $1 == "sdb") { sdb_val= $12 };
+  if ( $1 == "sdc") { sdc_val= $12 };
+  if ( $1 == "sdd") { sdd_val= $12 };
+  if ( $1 == "sde") { sde_val= $12 };
+  if ( $1 == "sdf") { sdf_val= $12 };
+  if ( $1 == "sdg") { sdg_val= $12 };
+  if ( $1 == "sdh") { sdh_val= $12 };
+  if ( $1 == "sdi") { sdi_val= $12 };
+  if ( $1 == "sdj") { sdj_val= $12 };
+  if ( $1 == "sdk") { sdk_val= $12 };
+  if ( $1 == "sdl") { sdl_val= $12 };
+  if ($1 == "Time:") {
+     printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"
+,date,time,sda_val,sdb_val,sdc_val,sdd_val,sde_val,sdf_val,sdg_val,sdh_val,sdi_val,
+sdj_val,sdk_val,sdl_val;
+   }
+}
+'
+
+
+### Flash Disks ##########
+cd /opt/oracle.oswatcher/osw/archive/oswiostat
+bunzip2 -cf *iostat_13.10.01.0400*.dat* | egrep -v Device | awk '
+BEGIN {
+date=""; time="";
+printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t
+%s\n","Date       ","Time
+","sdn","sdo","sdp","sdq","sdr","sds","sdt","sdu","sdv","sdw","sdx","sdy","sdz","sd
+aa","sdab","sdac" ;
+sdn_val=""; sdo_val=""; sdp_val=""; sdq_val="";
+sdr_val=""; sds_val=""; sdt_val=""; sdu_val="";
+sdv_val=""; sdw_val=""; sdx_val=""; sdy_val="";
+sdz_val=""; sdaa_val=""; sdab_val=""; sdac_val="";
+}
+{
+  if ($1 == "zzz") {date=$4 "-" $3 "-" $7}
+  if ($1 == "Time:") {time=$2 }
+  #  %util ($12)
+  if ( $1 == "sdn") { sdn_val= $12 };
+  if ( $1 == "sdo") { sdo_val= $12 };
+  if ( $1 == "sdp") { sdp_val= $12 };
+  if ( $1 == "sdq") { sdq_val= $12 };
+  if ( $1 == "sdr") { sdr_val= $12 };
+  if ( $1 == "sds") { sds_val= $12 };
+  if ( $1 == "sdt") { sdt_val= $12 };
+  if ( $1 == "sdu") { sdu_val= $12 };
+  if ( $1 == "sdv") { sdv_val= $12 };
+  if ( $1 == "sdw") { sdw_val= $12 };
+  if ( $1 == "sdx") { sdx_val= $12 };
+  if ( $1 == "sdy") { sdy_val= $12 };
+  if ( $1 == "sdz") { sdz_val= $12 };
+  if ( $1 == "sdaa") { sdaa_val= $12 };
+  if ( $1 == "sdab") { sdab_val= $12 };
+  if ( $1 == "sdac") { sdac_val= $12 };
+  if ($1 == "Time:") {
+     printf ("%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-s\t%-
+s\t%-s\t%-s\t%-s\t%-s\n"
+,date,time,sdn_val,sdo_val,sdp_val,sdq_val,sdr_val,sds_val,sdt_val,sdu_val,sdv_val,
+sdw_val,sdx_val,sdy_val,sdz_val,sdaa_val,sdab_val,sdac_val);
+  }
+}
+'
+
+#############################################################
+#-- Filter the OS Watcher Top output for a particular process
+#############################################################
+
+cd /opt/oracle.oswatcher/osw/archive/oswtop/
+for i in `ls *14.04.24.0500.dat*`;
+do
+     bunzip2 -c $i |egrep -h '^zzz|^top|tnslsnr LISTENER -inherit' | awk '
+BEGIN { date="";time="";}
+{
+   if ($1 == "zzz")
+   {
+      date=$4 "-" $3 "-" $7
+   }
+   else {
+        if ($1 == "top")
+        {
+          time=$3
+        }
+        else {
+           print date " " time " " $0 ;
+        }
+   }
+}
+'
+done
+
+#######################################################################
+#-- Filter the OS Watcher Top output for high CPU usage processes
+#######################################################################
+  PID USER      PR   NI   VIRT   RES   SHR S %CPU %MEM   TIME+   COMMAND
+
+  1 - PID
+  2 - USER
+  3 - PRIORITY
+  4 - Nice
+  5 - Virtual Memory
+  6 - Resident Memory
+  7 - Shared Memory
+  8 - Status
+  9 - %CPU
+  10 - %Memory
+  11 - Time
+  12 - Command
+
+cd /opt/oracle.oswatcher/osw/archive/oswtop/
+for i in `ls *14.04.29.2000*.dat.bz2`
+do
+    bunzip2 -c $i | egrep -v '^Tasks|^Mem|^Swap' | awk '
+BEGIN { date=""; time=""; }
+{
+   if ($1 == "zzz") { date=$4 "-" $3 "-" $7 }
+   else { if ($1 == "top") { time=$3 }
+           else { if ($9 >= 80) #Resource Usage
+                     { print date " " time " " $0 ; }
+                }
+        }
+}
+'
+done
+
+#######################################################################
+#-- Filter the OS Watcher Top output for high CPU usage processes
+#######################################################################
+
+  PID USER      PR   NI   VIRT   RES   SHR S %CPU %MEM   TIME+   COMMAND
+
+  1 - PID
+  2 - USER
+  3 - PRIORITY
+  4 - Nice
+  5 - Virtual Memory
+  6 - Resident Memory
+  7 - Shared Memory
+  8 - Status
+  9 - %CPU
+  10 - %Memory
+  11 - Time
+  12 - Command
+
+cd /opt/oracle.oswatcher/osw/archive/oswtop/
+for i in `ls *14.04.29.2000*.dat.bz2`
+do
+    bunzip2 -c $i | egrep -v '^Tasks|^Mem|^Swap' | awk '
+BEGIN { date=""; time=""; }
+{
+   if ($1 == "zzz") { date=$4 "-" $3 "-" $7 }
+   else { if ($1 == "top") { time=$3 }
+           else { if ($9 >= 80) #Resource Usage
+                    { print date " " time " " $0 ; }
+               }
+       }
+}
+'
+done
+
+
+#######################################################################
+#-- Expect script
+#######################################################################
+
+# Add ssh keys between nodes
+expect -c '
+spawn dcli -l root -g all_group -k
+while {1} {
+  expect "(yes/no)?" { send "yes\n"}
+  expect "password:" { send "welcome1\n"}
+}
+'
+
+
+
+
+dcli -l root -g all_group hostname
+
+
+dcli -l root -g dbs_group   "dcli -l root -g all_group hostname |wc -l"
+
+
+
+
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e 'LIST flashcache
+attributes name,status,size,creationTime,degradedCelldisks,effectiveCacheSize '"
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e LIST FLASHLOG"
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e DROP FLASHCACHE"
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e ' CREATE GRIDDISK ALL
+FlashDisk PREFIX=FLASH_DM01 , size=20G '"
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e ' CREATE FLASHLOG ALL
+FLASHDISK '"
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e ' CREATE flashcache
+ALL '"
+dcli -l root -g /tmp/vishal/newgroups/cell_group " cellcli -e 'LIST flashcache
+attributes name,status,size,creationTime,degradedCelldisks,effectiveCacheSize ' "
+dcli -l root -g /tmp/vishal/newgroups/cell_group "cellcli -e LIST FLASHLOG"
+
+
+
+create diskgroup DATA_DM02_EXT NORMAL REDUNDANCY
+disk 'o/*/DATA_DM02_EXT*'
+ATTRIBUTE 'COMPATIBLE.ASM'='11.2.0.2.0'
+, 'COMPATIBLE.RDBMS'='11.2.0.2'
+, 'AU_SIZE'='4194304'
+,'cell.smart_scan_capable'='TRUE'
+;
+##########################################
+# Exadata Cell Parameters & Events
+##########################################
+
+Exadata Cell Events
+######################
+  immediate cellsrv.cellsrv_statedump
+  immediate cellsrv.cellsrv_dump
+  immediate cellsrv.cellsrv_flashcache
+  immediate cellsrv.cellsrv_resetstats
+  immediate cellsrv.cellsrv_setparam
+  immediate cellsrv.cellsrv_storidx
+  trace[cellsrv.cellsrv_events_layer]
+
+
+# Cell server system state dump
+
+
+    alter cell events = "immediate cellsrv.cellsrv_statedump(2,0)";
+
+    or issue kill -12 on cellsrv OS pid.
+
+    alter cell events = "immediate cellsrv.cellsrv_statedump(0,0)";
+    alter cell events = "immediate cellsrv.cellsrv_statedump(1,0)";
+    alter cell events = "immediate cellsrv.cellsrv_statedump(2,0)";
+
+Reference - http://progeeking.com/2013/10/28/exadata-io-statistics/
+#####################################################################
+# I/O latency statistics (Note the IO L stats)
+  alter cell events="immediate cellsrv.cellsrv_dump('iolstats',0)";
+  alter cell events="immediate cellsrv.cellsrv_resetstats('iolstats')";
+
+    alter cell events="immediate cellsrv.cellsrv_dump('iolhiststats',0)";
+
+# I/O reason statistics:
+  alter cell events="immediate cellsrv.cellsrv_dump('ioreasons',0)";
+  alter cell events="immediate cellsrv.cellsrv_resetstats('ioreasons')";
+
+# Basic I/O statistics:
+  alter cell events="immediate cellsrv.cellsrv_dump('devio_stats',0)";
+
+# Predicate I/O statistics:
+  alter cell events="immediate cellsrv.cellsrv_dump('predicateio',0)";
+
+# Reset FlashCache Contents
+  alter cell events = "immediate cellsrv.cellsrv_flashcache(Reset,0,0,0)";
+
+
+
+# Clear cellsrv statistics
+  alter cell events = "immediate cellsrv.cellsrv_resetstats()";
+
+#
+  alter cell events = "immediate
+cellsrv.cellsrv_setparam('_cell_gen_time_stats_level','1')";
+  alter cell events = "immediate
+cellsrv.cellsrv_setparam('_cell_gen_time_stats_level','0')";
+# To enable tracing of the auto disk management modules on a storage cell, run
+cellcli and enter the following:
+  alter cell events='trace[cellsrv.cellsrv_events_layer]
+memory=highest,disk=highest'
+
+# To disable tracing of the auto disk management modules on a storage cell, run
+cellcli and enter the following:
+    alter cell events='trace[cellsrv.cellsrv_events_layer] off';
+
+# Storage index - Diagnose Storage index id in Exadata cell server.
+
+  alter cell events = "immediate cellsrv.cellsrv_storidx(dumpridx, all, 0, 0, 0);
+
+  alter cell events="immediate cellsrv.cellsrv_storidx('dumpridx|purge|disable|
+enable','all|GridDiskName', objd, tsn, dbid)";
+
+       dumpridx - dump storage indexes
+       purge - purge storage indexes for specified disk/db/object
+       disable - disable storage indexes for specified disk/db/object
+       enable - disable storage indexes for specified disk/db/object
+
+       all/griddiskname - dump for all griddisk/dump for specific griddisk
+
+       objd - data_object_id from all_objects
+       tsn - tablespace number � ts# from ts$
+       dbid - ksqdngunid from x$ksqdn
+
+
+
+# Dump cell memory   (http://progeeking.com/2013/10/28/exadata-cellsrv-memory-
+usage/)
+
+  # Memory usage summary
+  alter cell events="immediate cellsrv.cellsrv_dump('memsummary',0)"
+
+  # SGA Memory Summary
+  alter cell events="immediate cellsrv.cellsrv_dump('sgaheapsummary',0)";
+
+  # PGA Memory Details
+  alter cell events="immediate cellsrv.cellsrv_dump('pgaheap',0)";
+
+# Dump cell parameters
+  alter cell events="immediate cellsrv.cellsrv_dump('cellparams',0)";
+
+# Setting $OSSCONF/cellinit.ora parameters dynamically.
+  alter cell events="immediate cellsrv.cellsrv_setparam('_cell_io_hang_time','90')"
+  alter cell events="immediate
+cellsrv.cellsrv_setparam('_cell_io_hang_kill_time','95')"
+  alter cell events="immediate
+cellsrv.cellsrv_setparam('_cellrsdef_heartbeat_timeout','10')"    (default 6s)
+
+
+  Possible parameter
+   _cell_1mb_buffers_hugepage_support=false
+   _cell_disable_ant_check_reid=true
+   _cell_io_hang_reboot=false
+   _cell_io_hang_time=60
+   _cell_num_16k_buffers=2000
+   _cell_num_1mb_brr_buffers=5
+   _cell_num_1mb_buffers=200
+   _cell_num_1mb_bwr_buffers=5
+   _cell_num_32k_buffers=1000
+   _cell_num_64k_buffers=1000
+   _cell_num_8k_buffers=5000
+   _cell_num_buffers=1200
+   _cell_print_all_params=true
+   _cellrsbkp_poll_invl=15
+   _cellrsdef_fast_restart=0
+   _cellrsdef_heartbeat_timeout=6
+   _cellrsdef_srvc_cleanup_time=5
+   _cellrsdef_srvc_dump=30
+   _cellrsms_poll_invl=60
+   _cellrsos_poll_invl=15
+   _cellrssrv_poll_invl=15
+   _ms_cell_ioctl_timeout=60000
+   _reconnect_to_cell_attempts=4
+   _reonnect_to_cell_freq_in_sec=4
+   _skgxp_gen_ant_off_rpc_timeout_in_sec=300
+   _skgxp_gen_rpc_timeout_in_sec=90
+   _skgxp_udp_use_tcb=false
+   _skgxp_udp_use_tcb=false
+
+   # Storage Index parameters
+   _cell_enable_storage_index_for_loads=TRUE
+   _cell_enable_storage_index_for_writes=TRUE
+   _cell_si_max_num_diag_mode_dumps=20
+   _cell_storage_index_columns=0
+   _cell_storage_index_diag_mode=false
+   _cell_storage_index_partial_rd_sectors=512
+   _cell_storage_index_partial_reads_threshold_percent=85
+   _cell_storage_index_sizing_factor=2
+
+
+
+
+alter cell events="immediate cellsrv.cellsrv_dump('cellparams',0)";
+
+Dumping configuration parameter values
+version = 0.0 (default = )
+_cell_max_pll_pred_writes = 36
+_cell_pred_writes_autotune_enabled = TRUE
+_cell_max_pll_pred_reads = 36
+_cell_pred_reads_autotune_enabled = TRUE
+_cell_max_cellsup_time_in_sec = 60
+_cell_max_flash_largeios = 48
+_cell_num_threads_in_short_wait = 40
+_cell_max_pll_pred_filters = 24 (default = 0)
+_cell_pred_filters_autotune_enabled = TRUE
+_cell_num_threads = 100
+_cell_num_buffers = 5000
+_cell_num_1mb_buffers = 5000 (default = 0)
+_cell_num_1mb_bwr_buffers = 180
+_cell_num_1mb_brr_buffers = 180
+_cell_max_dynbufs_memsize = 3072 (default = 0)
+_cell_listener_port = 5042
+_cell_listener_backlog = 1000
+_cell_listener_pll_jobs = 23
+_cell_listener_req_batch = 100
+_cell_num_0_byte_recv_ports = 4
+_cell_num_512_byte_recv_ports = 1
+_cell_num_2_kb_recv_ports = 1
+_cell_num_4_kb_recv_ports = 2
+_cell_num_8_kb_recv_ports = 4
+_cell_num_16_kb_recv_ports = 2
+_cell_num_32_kb_recv_ports = 2
+_cell_num_64_kb_recv_ports = 1
+_cell_num_1_mb_recv_ports = 2 (default = 1)
+_ms_cell_ioctl_timeout = 600000
+_cell_cd_metadata_slow_list =
+_cell_cd_metadata_prepare_timeout_in_sec = 5
+_cell_iorm_test_mode = FALSE
+_cell_iorm_perf_stats = FALSE
+_cell_iorm_wl_mode = 0
+_cell_iorm_hipri_alloc = 0
+_cell_iorm_medpri_alloc = 0
+_cell_iorm_lowpri_alloc = 0
+_cell_iorm_asm_alloc = 0
+_cell_iorm_lutil_limit = 0
+_cell_iorm_hints_enabled = FALSE
+_iorm_hint0 = -1
+_iorm_priority0 = -1
+_iorm_hint1 = -1
+_iorm_priority1 = -1
+_iorm_hint2 = -1
+_iorm_priority2 = -1
+_iorm_hint3 = -1
+_iorm_priority3 = -1
+_iorm_hint4 = -1
+_iorm_priority4 = -1
+_iorm_hint5 = -1
+_iorm_priority5 = -1
+_iorm_hint6 = -1
+_iorm_priority6 = -1
+_iorm_hint7 = -1
+_iorm_priority7 = -1
+_cell_iorm_pri_catidx = -1
+_cell_iorm_pri_dbidx = -1
+_cell_iorm_pri_cgidx = -1
+_cell_iorm_enable = TRUE
+_cell_iorm_max_io = 0
+_cell_iorm_max_lio = 0
+_cell_iorm_conc_writes = 0
+_cell_iorm_deadline = 0
+_cell_iorm_fake_dbs = 0
+_cell_iorm_busy_util = 15
+_cell_hard_disable = FALSE
+_cell_raise_softassert_on_harderr = FALSE
+_cell_enable_ossnet_checksum = 2
+_cell_enable_skgxp_stats = TRUE
+_skgxp_udp_use_tcb = TRUE
+_skgxp_udp_use_tcb_client = TRUE
+_cell_memory_tracing = TRUE
+_cell_dmpsga_enabled = FALSE
+_cell_enable_dynamic_credits = TRUE
+_cell_num_ios_per_predjob = 10
+_cell_num_pred_flashio_corrupt_retries = 1000
+_cell_pred_polling_ctl_enabled = TRUE
+_cell_pred_sim_block_byteord_conv = FALSE
+_cell_max_kuty_failure_diagnostics = 0
+_cell_print_all_params = FALSE
+_cell_pred_disable_destbuf_refill = FALSE
+_cell_smartio_passthru_enabled = FALSE
+_cell_pred_no_predio_limit = FALSE
+_cell_pred_enable_io_buffer_eviction = TRUE
+_cell_pred_enable_dest_buffer_eviction = TRUE
+_cell_pred_enable_flashio = TRUE
+_cell_snapshot_bufsize = 1
+_cell_snapshot_interval = 100
+_cell_gen_time_stats_level = 1
+_cell_gen_time_stats_timer_level = 0
+_cell_force_split_gdisk = FALSE
+_cell_testlevel = 0
+_cell_max_receive_buffers_per_port = 600
+_cell_num_8k_buffers = 10000
+_cell_num_16k_buffers = 5000
+_cell_num_32k_buffers = 5000
+_cell_num_64k_buffers = 5000
+_cell_max_receive_buffers_8k_port = 1000
+_cell_max_receive_buffers_1mb_port = 50
+_cell_crash_on_error = 0
+_cell_crash_on_error_skip_n = 0
+_cell_safefile_sync_enabled = FALSE
+_cell_1mb_buffers_hugepage_support = TRUE
+_skgxp_udp_interface_detection_time_secs = 1
+_skgxp_gen_ant_ping_misscount = 8
+_skgxp_gen_ant_ping_misscount_delay = 225
+_disable_diskmon_tcp_monitor = FALSE
+_disable_diskmon_subnet_manager_query = FALSE
+_skgxp_min_zcpy_len = 2147483647
+_skgxp_min_rpc_rcv_zcpy_len = 2147483647
+_skgxp_zcpy_flags = 2147483647
+_skgxp_ctx_flags1 = 0
+_skgxp_ctx_flags1mask = 0
+_skgxp_dynamic_protocol = 0
+_skgxp_inets = 0
+_skgxpg_last_parameter = 27
+_skgxp_ant_options = 0
+_libcell_enable_libcell_interrupts = 1
+_cell_rcvport_hist_size = 0
+_skgxp_gen_rpc_no_path_check_in_sec = 1
+_skgxp_gen_rpc_timeout_in_sec = 300
+_skgxp_gen_ant_off_rpc_timeout_in_sec = 10
+_reconnect_to_cell_freq_in_sec = 2
+_reconnect_to_cell_attempts = 7
+_disconnect_to_cell_attempts = 2
+_reconnect_controls_reset_interval = 60
+_dskm_disable_reconnect_to_cell = FALSE
+_cell_disable_resource_leak_check = FALSE
+_cell_disable_ant_check_reid = FALSE
+_cell_disable_proactive_drop = FALSE
+_cell_server_event =
+_cell_client_event =
+_cell_offloadserver_event =
+_cell_reserve_hugepage_memory_mb = 24
+_cell_tolerates_max_backward_drift_microsecs = 300000
+_cell_num_sched_log_entries = 8192
+_cell_storage_index_columns = 8 (default = 0)
+_cell_storage_index_partial_reads_threshold_percent = 85
+_cell_storage_index_partial_rd_sectors = 512
+_cell_enable_storage_index_for_loads = TRUE
+_cell_enable_storage_index_for_writes = TRUE
+_cell_storage_index_diag_mode = 0
+_cell_storage_index_sizing_factor = 2
+_cell_pred_max_smartio_sessions = 2320 (default = 0)
+_cell_pred_max_core_exec_threads = 23 (default = 14)
+_cell_core_exec_ctl_level = 0
+_cell_pred_num_ios_toissue_flashobj = 2
+_cell_max_topheap_references = 50
+_cell_pred_max_cus_per_filter = 1
+_cell_load_timezone_during_boot = TRUE
+_cell_sendport_private_rqh_pool_size = 10
+_cell_sendport_global_rqh_num_pools = 512
+_cell_sendport_global_rqh_pool_maxincr = 150
+_cell_capability_version = 0
+_cell_iolat_stats_disable = FALSE
+_cell_pred_mapelem_split_size = -1
+_cell_perf_flags = 0
+_cell_enable_sbuf_check = FALSE
+_cell_disable_crash_dump_enhancement = FALSE
+_cell_object_expiration_hours = 24
+_cell_mutex_stats = 0
+_cell_port_activity_threshold = 300000
+_cell_ant_port_activity_threshold = 1800000
+_cell_ant_port_noopen_threshold = 60000
+_cell_in_lrg_testing = FALSE
+_cell_write_simulate_hard_error_freq = 0
+_cell_assert_on_flash_data_corruption = 0
+_cell_flashcache_diag_reads_frequency = 0
+_cell_flashcache_enable_coalescing = TRUE
+_cell_flashcache_mdextent_chksum = 2
+_cell_read_flash_data_verif_level = 3
+_cell_flashcache_data_verif_aura1 = TRUE
+_cell_flashcache_data_verif_aura2 = FALSE
+_cell_read_flash_gdisk_verif_level = 3
+_cell_max_retry_on_read_flash_gdisk_verif_err = 2
+_cell_enable_read_verif_on_these_gdisks =
+_cell_enable_read_verif_on_gdisk_first_N_MB = -1
+_cell_flash_cache_sanity_checking = 0
+_cell_fc_force_caching_for_nocache_ios = FALSE
+_cellrsdef_fast_restart = 1
+_cell_max_memory = 22171 (default = 0)
+_cell_max_dump_objects = 300000
+_cell_max_connections = 1500 (default = 0)
+_cell_sga_lowmem_threshold_size = 1024 (default = 0)
+_cell_nomem_threshold_enabled = TRUE
+_cell_sga_lowmem_threshold_enabled = TRUE
+_cell_disable_heap_summary = FALSE
+_cell_flashcache_max_FDOM_outst_ios = 70
+_cell_flashcache_dsync_jobs = 4
+_cell_wait_gdisk_refcnt_timeout_in_sec = 600
+_cell_gd_io_quiescent_timeout = 10
+_cell_auto_close_fd_interval = 120
+_cell_dump_sga_on_oom_exception = FALSE
+_cell_quarantine_manager_disabled = FALSE
+_cell_qm_disable_sql_step_quarantine = FALSE
+_cell_qm_disable_disk_region_quarantine = FALSE
+_cell_qm_db_quarantine_threshold = 3
+_cell_qm_offload_quarantine_threshold = 3
+_cell_thread_max_trace_file_size = -1
+_cell_redolog_fast_ack = FALSE
+_cell_disable_flashcache_db_blk_chksum = FALSE
+_cell_disable_platform_decryption = FALSE
+_cell_disable_flash_gdisk_db_blk_chksum = FALSE
+_cell_auto_dump_errstack = TRUE
+_cell_auto_dump_errstack_interval = 900
+_cell_si_max_num_diag_mode_dumps = 20
+_cell_fc_persistence_max_io_retry = 1
+_cell_fc_slowflush_sleep_interval = 500
+_cell_fc_persistence_state = 0
+_cell_fc_md_shadow_paging_enabled = TRUE
+_cell_fc_use_32k_cachelines = FALSE
+_cell_fc_scan_tc_blksize = 4
+_cell_fc_autocache_scans = TRUE
+_cell_fc_scan_elgblty_threshold = 1
+_cell_fc_scan_tc_threshold = 2
+_cell_fc_scan_tc_cooling_threshold = 10
+_cell_disable_crash_dump_enhancement = FALSE
+_cell_object_expiration_hours = 24
+_cell_mutex_stats = 0
+_cell_port_activity_threshold = 300000
+_cell_ant_port_activity_threshold = 1800000
+_cell_ant_port_noopen_threshold = 60000
+_cell_in_lrg_testing = FALSE
+_cell_write_simulate_hard_error_freq = 0
+_cell_assert_on_flash_data_corruption = 0
+_cell_flashcache_diag_reads_frequency = 0
+_cell_flashcache_enable_coalescing = TRUE
+_cell_flashcache_mdextent_chksum = 2
+_cell_read_flash_data_verif_level = 3
+_cell_flashcache_data_verif_aura1 = TRUE
+_cell_flashcache_data_verif_aura2 = FALSE
+_cell_read_flash_gdisk_verif_level = 3
+_cell_max_retry_on_read_flash_gdisk_verif_err = 2
+_cell_enable_read_verif_on_these_gdisks =
+_cell_enable_read_verif_on_gdisk_first_N_MB = -1
+_cell_flash_cache_sanity_checking = 0
+_cell_fc_force_caching_for_nocache_ios = FALSE
+_cellrsdef_fast_restart = 1
+_cell_max_memory = 22171 (default = 0)
+_cell_max_dump_objects = 300000
+_cell_max_connections = 1500 (default = 0)
+_cell_sga_lowmem_threshold_size = 1024 (default = 0)
+_cell_nomem_threshold_enabled = TRUE
+_cell_sga_lowmem_threshold_enabled = TRUE
+_cell_disable_heap_summary = FALSE
+_cell_flashcache_max_FDOM_outst_ios = 70
+_cell_flashcache_dsync_jobs = 4
+_cell_wait_gdisk_refcnt_timeout_in_sec = 600
+_cell_gd_io_quiescent_timeout = 10
+_cell_auto_close_fd_interval = 120
+_cell_dump_sga_on_oom_exception = FALSE
+_cell_quarantine_manager_disabled = FALSE
+_cell_qm_disable_sql_step_quarantine = FALSE
+_cell_qm_disable_disk_region_quarantine = FALSE
+_cell_qm_db_quarantine_threshold = 3
+_cell_qm_offload_quarantine_threshold = 3
+_cell_thread_max_trace_file_size = -1
+_cell_redolog_fast_ack = FALSE
+_cell_disable_flashcache_db_blk_chksum = FALSE
+_cell_disable_platform_decryption = FALSE
+_cell_disable_flash_gdisk_db_blk_chksum = FALSE
+_cell_auto_dump_errstack = TRUE
+_cell_auto_dump_errstack_interval = 900
+_cell_si_max_num_diag_mode_dumps = 20
+_cell_fc_persistence_max_io_retry = 1
+_cell_fc_slowflush_sleep_interval = 500
+_cell_fc_persistence_state = 0
+_cell_fc_md_shadow_paging_enabled = TRUE
+_cell_fc_use_32k_cachelines = FALSE
+_cell_fc_scan_tc_blksize = 4
+_cell_fc_autocache_scans = TRUE
+_cell_fc_scan_elgblty_threshold = 1
+_cell_fc_scan_tc_threshold = 2
+_cell_fc_scan_tc_cooling_threshold = 10
+_cell_fc_scan_tc_decay_zone_sz = 4
+_cell_fc_scan_tc_num_decay_zones = 6
+_cell_fc_scan_threshold_timeout = 1
+_cell_fc_oltp_resv_pcntg = 50
+_cell_fc_cache_unkept_tbls = TRUE
+_cell_fc_num_hashbuckets = 0
+_cell_fc_aura2_md_shadow_paging_enabled = FALSE
+_cell_fc_bootstrap_timeout = 5000000
+_cell_fc_cache_mirror_writes = 1
+_cell_fc_dw_batch_size = 1
+_cell_fc_lru_scan4freeable_depth = 128
+_cell_fc_enable_opread = TRUE
+_cell_fc_replacement_threshold = 94
+_cell_fc_trim_threshold = 97
+_cell_fc_lrg_compression_ratio = 5
+_cell_fc_outstanding_trim_ios = 32
+_cell_simulate_railroad_crashes = FALSE
+_cell_fc_toresilver_limit_chdrs = 390000
+_cell_qm_max_simulated_railroad_crashes = 2
+_cell_latency_warning_threshold =
+_cell_latency_threshold_check_interval = 360000
+_cell_latency_threshold_print_warning = FALSE
+_cell_si_expensive_debug_tracing = FALSE
+_cell_si_lock_pool_num_locks = 1024
+_cell_poor_perf_schedule_time = 5000
+_cell_iohang_schedule_time = 500
+_cell_assert_unsafe_allocmem = FALSE
+_cell_fplib_fix_control = 0
+Unable to lookup value for parameter _lost_cache_detect
+_cell_num_vers_check_fail_messages = 0
+_cell_qm_db_quarantine_time_threshold = 86400
+_cell_pthread_stacksize = 10485760
+_cell_flashlog_flags = 0
+_cell_flashlog_max_active_table_size = 8191
+_cell_secure_erase_power = 5
+_cell_mpp_cpu_freq = 2
+_ms_listener_port = 5043
+_cell_mpp_threshold = 90
+_cell_mpp_max_pushback = 50
+_si_write_diag_disable = FALSE
+_cell_max_cellsrvstat_sessions = 3
+_cell_si_diag_mode_force = FALSE
+_cell_tracefile_max_size = 1610612736
+_cell_state_dump_options = 0
+_cell_num_offload_processes = 0 (default = 1)
+_cell_num_offload_groupmsg_threads = 0
+_cell_in_debug_mode = FALSE
+_cell_oflsrv_heartbeat_timeout_sec = 6
+ERROR: _gentimestats_rut_thresh has invalid ossp_conf size of 8
+_skgxp_diag_bucket_size = 32
+_cell_diag_bucket_size = 131072 (default = 128)
+Unable to lookup value for parameter _gentimestats_rut_disable_stkdmp
+_ms_mprotect_corrupt_buf = TRUE
+_cell_perf_action =
+_cell_perf_tests =
+_cell_fc_enable_resilvering = TRUE
+_cell_netsend_out_jobq_count = 10
+_cell_cache_out_jobq_count = 50
+_cell_aio_ctx_count = 5
+_cell_iops_perf_testing = FALSE
+_cell_flashcache_dsync_jobs = 4
+_cell_wait_gdisk_refcnt_timeout_in_sec = 600
+_cell_gd_io_quiescent_timeout = 10
+_cell_auto_close_fd_interval = 120
+_cell_dump_sga_on_oom_exception = FALSE
+_cell_quarantine_manager_disabled = FALSE
+_cell_qm_disable_sql_step_quarantine = FALSE
+_cell_qm_disable_disk_region_quarantine = FALSE
+_cell_qm_db_quarantine_threshold = 3
+_cell_qm_offload_quarantine_threshold = 3
+_cell_thread_max_trace_file_size = -1
+_cell_redolog_fast_ack = FALSE
+_cell_disable_flashcache_db_blk_chksum = FALSE
+_cell_disable_platform_decryption = FALSE
+_cell_disable_flash_gdisk_db_blk_chksum = FALSE
+_cell_auto_dump_errstack = TRUE
+_cell_auto_dump_errstack_interval = 900
+_cell_si_max_num_diag_mode_dumps = 20
+_cell_fc_persistence_max_io_retry = 1
+_cell_fc_slowflush_sleep_interval = 500
+_cell_fc_persistence_state = 0
+_cell_fc_md_shadow_paging_enabled = TRUE
+_cell_fc_use_32k_cachelines = FALSE
+_cell_fc_scan_tc_blksize = 4
+_cell_fc_autocache_scans = TRUE
+_cell_fc_scan_elgblty_threshold = 1
+_cell_fc_scan_tc_threshold = 2
+_cell_fc_scan_tc_cooling_threshold = 10
+_cell_fc_scan_tc_decay_zone_sz = 4
+_cell_fc_scan_tc_num_decay_zones = 6
+_cell_fc_scan_threshold_timeout = 1
+_cell_fc_oltp_resv_pcntg = 50
+_cell_fc_cache_unkept_tbls = TRUE
+_cell_fc_num_hashbuckets = 0
+_cell_fc_aura2_md_shadow_paging_enabled = FALSE
+_cell_fc_bootstrap_timeout = 5000000
+_cell_fc_cache_mirror_writes = 1
+_cell_fc_dw_batch_size = 1
+_cell_fc_lru_scan4freeable_depth = 128
+_cell_fc_enable_opread = TRUE
+_cell_fc_replacement_threshold = 94
+_cell_fc_trim_threshold = 97
+_cell_fc_lrg_compression_ratio = 5
+_cell_fc_outstanding_trim_ios = 32
+_cell_simulate_railroad_crashes = FALSE
+_cell_fc_toresilver_limit_chdrs = 390000
+_cell_qm_max_simulated_railroad_crashes = 2
+_cell_latency_warning_threshold =
+_cell_latency_threshold_check_interval = 360000
+_cell_latency_threshold_print_warning = FALSE
+_cell_si_expensive_debug_tracing = FALSE
+_cell_si_lock_pool_num_locks = 1024
+_cell_poor_perf_schedule_time = 5000
+_cell_iohang_schedule_time = 500
+_cell_assert_unsafe_allocmem = FALSE
+_cell_fplib_fix_control = 0
+Unable to lookup value for parameter _lost_cache_detect
+_cell_num_vers_check_fail_messages = 0
+_cell_qm_db_quarantine_time_threshold = 86400
+_cell_pthread_stacksize = 10485760
+_cell_flashlog_flags = 0
+_cell_flashlog_max_active_table_size = 8191
+_cell_secure_erase_power = 5
+_cell_mpp_cpu_freq = 2
+_ms_listener_port = 5043
+_cell_mpp_threshold = 90
+_cell_mpp_max_pushback = 50
+_si_write_diag_disable = FALSE
+_cell_max_cellsrvstat_sessions = 3
+_cell_si_diag_mode_force = FALSE
+_cell_tracefile_max_size = 1610612736
+_cell_state_dump_options = 0
+_cell_num_offload_processes = 0 (default = 1)
+_cell_num_offload_groupmsg_threads = 0
+_cell_in_debug_mode = FALSE
+_cell_oflsrv_heartbeat_timeout_sec = 6
+ERROR: _gentimestats_rut_thresh has invalid ossp_conf size of 8
+_skgxp_diag_bucket_size = 32
+_cell_diag_bucket_size = 131072 (default = 128)
+Unable to lookup value for parameter _gentimestats_rut_disable_stkdmp
+_ms_mprotect_corrupt_buf = TRUE
+_cell_perf_action =
+_cell_perf_tests =
+_cell_fc_enable_resilvering = TRUE
+_cell_netsend_out_jobq_count = 10
+_cell_cache_out_jobq_count = 50
+_cell_aio_ctx_count = 5
+_cell_iops_perf_testing = FALSE
+_cell_netsend_returnjob_thres_for_8Kbuf = 500
+_kse_snap_ring_size = 0
+_kse_snap_ring_record_stack = FALSE
+_cell_num_priv_fsa_8k_buffers = 0
+_cell_num_dynamic_priv_fsa_8k_buffers = 60
+_cell_num_dynamic_priv_fsa_cachegets = 50
+_cell_num_dynamic_priv_fsa_bids = 50
+_cell_dynamic_priv_fsa_8k_iops_threshold = 160000
+_cell_assert_on_diagmode_catching_wrong_results = FALSE
+_cell_cd_scrubbing_exclude_list =
+_cell_receiveport_buf_alloc_incr = 10
+_cell_num_qos_1_mb_recv_ports = 1
+_cell_max_receive_buffers_qos_1mb_port = 10
+_cell_oob_max_growth_percent = 20
+_cell_oob_max_growth_qos = 250
+_oss_enable_scrub_repair = TRUE
+_cell_system_thread_max_trace_file_size = 6291456
+_cell_timer_granularity_msec = 5
+_cell_ffi_flush_interval = 2000
+_cell_ffi_max_memory_usage_in_mb = 2000
+_cell_netsend_queue_thresh = 500
+_cell_port_frozen_threshold = 3600000
+_dskm_test_fence_postpone = 0
+_cell_rslv_poor_health = TRUE
+_cell_hugetlbtext_relocate = TRUE
+_cell_allow_write_cancellation_upon_hair_trigger = FALSE
+_cell_enable_buffer_owner_hist = FALSE
+Cellsrv Default Trace Size Limit 15042511
+
+
+
+###################################
+ZFS Tuning
+##############
+
+NFS parameter listen_backlog=128
+ZFS52-2# ndd -set /dev/tcp tcp_conn_req_max_q 1024
+ZFS52-2# ndd -set /dev/tcp tcp_conn_req_max_q0 8192
+
+
+###################################
+Exadata Network Interface Check
+###################################
+
+##--   Check bonded interface   slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bond0/bonding/slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bond1/bonding/slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bond2/bonding/slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bondeth0/bonding/slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bondeth1/bonding/slaves
+dcli   -l root -g ~/dbs_group   cat /sys/class/net/bondib0/bonding/slaves
+
+
+
+##--   Check network interface   status
+dcli   -l root -g ~/dbs_group    ethtool   eth0|egrep   'detected|Speed'|sort   -k2
+dcli   -l root -g ~/dbs_group    ethtool   eth1|egrep   'detected|Speed'|sort   -k2
+dcli   -l root -g ~/dbs_group    ethtool   eth2|egrep   'detected|Speed'|sort   -k2
+dcli   -l root -g ~/dbs_group    ethtool   eth3|egrep   'detected|Speed'|sort   -k2
+dcli   -l root -g ~/dbs_group    ethtool   eth4|egrep   'detected|Speed'|sort   -k2
+dcli   -l root -g ~/dbs_group    ethtool   eth5|egrep   'detected|Speed'|sort   -k2
+
+
+##-- Check supported network interface speed
+dcli -l root -g ~/dbs_group ethtool eth0|egrep -A2 ' Supported link modes'|sort
+-k2
+dcli -l root -g ~/dbs_group ethtool eth1|egrep -A2 ' Supported link modes'|sort
+-k2
+dcli   -l root -g ~/dbs_group         ethtool eth2|egrep -A2 ' Supported link modes'|sort
+-k2
+dcli   -l root -g ~/dbs_group         ethtool eth3|egrep -A2 ' Supported link modes'|sort
+-k2
+dcli   -l root -g ~/dbs_group         ethtool eth4|egrep -A2 ' Supported link modes'|sort
+-k2
+dcli   -l root -g ~/dbs_group         ethtool eth5|egrep -A2 ' Supported link modes'|sort
+-k2
+
+##--   Check IP Address
+dcli   -l root -g ~/dbs_group         ifconfig   bond0|grep 'inet addr'
+dcli   -l root -g ~/dbs_group         ifconfig   bond1|grep 'inet addr'
+dcli   -l root -g ~/dbs_group         ifconfig   bond2|grep 'inet addr'
+dcli   -l root -g ~/dbs_group         ifconfig   bondeth0|grep 'inet addr'
+dcli   -l root -g ~/dbs_group         ifconfig   bondeth1|grep 'inet addr'
+dcli   -l root -g ~/dbs_group         ifconfig   bondib0|grep 'inet addr'
+
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth0|grep   'inet   addr'
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth1|grep   'inet   addr'
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth2|grep   'inet   addr'
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth3|grep   'inet   addr'
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth4|grep   'inet   addr'
+dcli   -l   root   -g   ~/dbs_group   ifconfig   eth5|grep   'inet   addr'
+
+
+###############################
+Exadata Unix Account Creation
+###############################
+
+dcli -l root -g ~/dbs_group mkdir -p /home/vgupta
+dcli -l root -g ~/dbs_group useradd -u 24117 -g techdept -G dbapm -d /home/vgupta
+-s /bin/bash vgupta
+## change user password expiry information
+dcli -l root -g ~/dbs_group chage -E -1 -m 0 -M 99999 -W 7 vgupta
+dcli -l root -g ~/dbs_group chown vgupta:vgupta /home/vgupta
+
+dcli -l root -g ~/dbs_group           "passwd vgupta <<EOF
+password
+password
+EOF
+"
+
+#################
+Exadata Tuning
+#################
+
+#------------------------------------------
+# Increase vm.max_map_count to 200000
+#------------------------------------------
+
+# Max oracle process memory is allowd upto (_realfree_heap_pagesize_hint *
+vm.max_map_count ).
+# Default value of vm.max_map_count is 65536. This can be changed on the fly
+# Default value of _realfree_heap_pagesize_hint parameter is 65536. It requires
+instance bounce to change this value.
+
+
+         # Check
+         dcli -l root -g dbs_group cat /proc/sys/vm/max_map_count
+       dcli -l root -g dbs_group /sbin/sysctl vm.max_map_count
+
+       # Change
+       dcli -l root -g dbs_group 'echo 200000 > /proc/sys/vm/max_map_count'
+       dcli -l root -g dbs_group 'echo vm.max_map_count=200000 >> /etc/sysctl.conf'
+
+##########################
+Exadata Disk Scrubbing
+##########################
+
+# Check Disk scrubbing schedule
+dcli -l root -g ~/cell_group ' grep   hardDiskScrubInterval
+$OSSCONF/cell_disk_config.xml'
+dcli -l root -g ~/cell_group ' grep   hardDiskScrubStartTime
+$OSSCONF/cell_disk_config.xml'
+
+# Stop disk scrubbing
+dcli -l root -g ~/cell_group " cellcli -e ALTER CELL hardDiskScrubInterval=none "
+
+# Schedule disk scrubbing time
+dcli -l root -g ~/cell_group " \" cellcli -e ALTER CELL
+hardDiskScrubStartTime='2015-08-23T00:00:00-07:00' \" "
+
+# Set disk scrubbing interval (Valid options are daily, weekly, biweekly and none).
+Time is in ms.
+# 14 days = 1209600000 ms
+# 7 days = 604800000 ms
+# 1 day =      86400000 ms
+dcli -l root -g ~/cell_group " cellcli -e ALTER CELL
+hardDiskScrubInterval=biweekly "
+
+
+
+
+-------------------------------------------------------------------
+-- ASM Disk Errors
+-------------------------------------------------------------------
+
+SELECT failgroup
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_00',read_errs+write_errs,0)) CD_00
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_01',read_errs+write_errs,0)) CD_01
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_02',read_errs+write_errs,0)) CD_02
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_03',read_errs+write_errs,0)) CD_03
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_04',read_errs+write_errs,0)) CD_04
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_05',read_errs+write_errs,0)) CD_05
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_06',read_errs+write_errs,0)) CD_06
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_07',read_errs+write_errs,0)) CD_07
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_08',read_errs+write_errs,0)) CD_08
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_09',read_errs+write_errs,0)) CD_09
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_10',read_errs+write_errs,0)) CD_10
+     , sum(DECODE(substr(name,INSTR(name,'_',-1,3)+1,5),
+'CD_11',read_errs+write_errs,0)) CD_11
+FROM gv$asm_disk_stat
+where name like '%CD%'
+GROUP BY failgroup
+ORDER BY 1;
+
+
+##########################
+# Exadata Rsync backup
+##########################
+
+BACKUP_DIR=/u23/oraback/exadata/`hostname -s`/
+rsync -a -v --one-file-system --delete /app     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /bin     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /boot    ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /etc     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /lib     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /lib64   ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /mnt     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /opt     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /root    ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /sbin    ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /selinux ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /srv     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /usr     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /var     ${BACKUP_DIR}
+rsync -a -v --one-file-system --delete /u01     ${BACKUP_DIR}
+--exclude='/u01/patches/' --exclude='*.aud' --exclude='*.trc' --exclude='*.trm'
+
+
+
+BACKUP_DIR=/u23/oraback/exadata/`hostname -s`/
+rsync -a -v --one-file-system --delete /u01     ${BACKUP_DIR}
+--exclude='/u01/patches/' --exclude='*.aud' --exclude='*.trc' --exclude='*.trm'
+
